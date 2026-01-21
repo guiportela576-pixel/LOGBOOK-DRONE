@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Logbook Drone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>🚁 Logbook Drone</h1>
+  <p id="summary">Total: 0h 0min | Nº de Voos: 0</p>
+</header>
+
+<main>
+
+<section>
+  <h2>Novo Voo</h2>
+
+  <input type="date" id="date">
+
+  <input type="number" id="flightsCount" min="1" value="1" placeholder="Nº de voos">
+
+  <input type="number" id="duration" placeholder="Duração total (min)">
+
+  <select id="drone"></select>
+  <input type="text" id="newDrone" placeholder="Novo drone">
+
+  <select id="location"></select>
+  <input type="text" id="newLocation" placeholder="Novo local">
+
+  <select id="sarpas"></select>
+  <input type="text" id="newSarpas" placeholder="Novo nº SARPAS">
+
+  <textarea id="notes" placeholder="Observações"></textarea>
+
+  <button onclick="addFlight()">Salvar Voo</button>
+</section>
+
+<!-- 🔹 NOVO BLOCO FIXO -->
+<section>
+  <h2>Horas Voada por Drone</h2>
+  <ul id="hoursByDrone"></ul>
+</section>
+
+<section>
+  <h2>Gerenciar Cadastros</h2>
+
+  <h3>Drones</h3>
+  <ul id="droneList"></ul>
+
+  <h3>Locais</h3>
+  <ul id="locationList"></ul>
+
+  <h3>SARPAS</h3>
+  <ul id="sarpasList"></ul>
+</section>
+
+<section>
+  <button onclick="exportCSV()">📁 Exportar para Excel</button>
+</section>
+
+<section>
+  <h2>Histórico de Voos</h2>
+  <ul id="flightList"></ul>
+</section>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
