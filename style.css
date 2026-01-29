@@ -36,11 +36,11 @@ body{
   min-height:100vh;
 }
 
-/* HEADER FIXO */
+/* HEADER (ROLANDO JUNTO — como você gostava) */
 .app-header{
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  position: relative; /* mantém rolando */
+  top: auto;
+  z-index: 1;
   background: linear-gradient(180deg, var(--navy), #0b2a5b 65%, #0a2a58);
   color:#fff;
   border-bottom:1px solid rgba(255,255,255,0.12);
@@ -124,16 +124,17 @@ body{
   box-shadow: 0 6px 16px rgba(0,0,0,0.18);
 }
 
-/* MAIN ocupa o resto e rola */
+/* MAIN */
 .app-main{
   flex: 1;
-  overflow: auto;
+  overflow: visible; /* mantém seu comportamento */
   padding: 12px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
 
 .tab-content{
   height: auto;
+  overflow: visible;
 }
 
 /* CARDS */
@@ -150,7 +151,9 @@ h2, h3{
   margin:0 0 10px 0;
 }
 
-h2{ font-size:18px; }
+h2{
+  font-size:18px;
+}
 
 h3{
   font-size:15px;
@@ -162,6 +165,17 @@ h3{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:10px;
+}
+
+/* (CORREÇÃO) Fechei o @media corretamente */
+@media (max-width: 480px){
+  .dashboard{
+    grid-template-columns: 1fr 1fr;
+  }
+  .dashboard .dash-card:nth-child(3),
+  .dashboard .dash-card:nth-child(4){
+    grid-column: 1 / -1;
+  }
 }
 
 /* Inputs */
@@ -241,7 +255,7 @@ button.primary{
   border-bottom:none;
 }
 
-/* Pequenos botões */
+/* Pequenos botões (se você usa "small-btn" no app.js) */
 .small-btn{
   width:auto;
   padding:8px 10px;
@@ -251,7 +265,7 @@ button.primary{
   color: var(--navy);
 }
 
-/* ===== DASHBOARD ===== */
+/* ===== DASHBOARD (CARDS DO TOPO) ===== */
 .dashboard{
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -274,28 +288,5 @@ button.primary{
   margin-bottom: 6px;
 }
 
-.dash-value{
-  font-size: 16px;
-  font-weight: 900;
-  color: #fff;
-  line-height: 1.1;
-}
-
-.dash-subvalue{
-  font-size: 13px;
-  font-weight: 900;
-  color: #fff;
-  line-height: 1.2;
-}
-
-/* no celular */
-@media (max-width: 480px){
-  .dashboard{
-    grid-template-columns: 1fr 1fr;
-  }
-  .dashboard .dash-card:nth-child(3),
-  .dashboard .dash-card:nth-child(4){
-    grid-column: 1 / -1;
-  }
-}
+.dash-value
 
