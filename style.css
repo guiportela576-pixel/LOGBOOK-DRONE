@@ -167,20 +167,9 @@ h3{
   gap:10px;
 }
 
-/* NOVO: campo ocupando a linha inteira */
+/* campo ocupando a linha inteira */
 .span-2{
   grid-column: 1 / -1;
-}
-
-/* Ajuste mobile do dashboard (parte que estava quebrada já está fechada) */
-@media (max-width: 480px){
-  .dashboard{
-    grid-template-columns: 1fr 1fr;
-  }
-  .dashboard .dash-card:nth-child(3),
-  .dashboard .dash-card:nth-child(4){
-    grid-column: 1 / -1;
-  }
 }
 
 /* Inputs */
@@ -270,52 +259,67 @@ button.primary{
   color: var(--navy);
 }
 
-/* ===== DASHBOARD ===== */
+/* ===== DASHBOARD (TOPO) — AJUSTADO ===== */
 .dashboard{
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1fr 1fr; /* horas e nº voos lado a lado */
   gap: 10px;
   margin-top: 10px;
+
+  /* centraliza e ocupa melhor a tela */
+  width: 100%;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .dash-card{
   background: rgba(255,255,255,0.16);
   border: 1px solid rgba(255,255,255,0.20);
   border-radius: 14px;
-  padding: 10px;
+  padding: 14px 12px; /* maior */
   text-align: center;
 }
 
+/* deixa os 2 primeiros (horas e voos) ainda mais “fortes” */
+.dashboard .dash-card:nth-child(1),
+.dashboard .dash-card:nth-child(2){
+  padding: 16px 12px;
+}
+
+/* mês atual e último voo ocupam a linha inteira */
+.dashboard .dash-card:nth-child(3),
+.dashboard .dash-card:nth-child(4){
+  grid-column: 1 / -1;
+}
+
 .dash-label{
-  font-size: 12px;
-  font-weight: 800;
-  color: rgba(255,255,255,0.85);
-  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.88);
+  margin-bottom: 8px;
 }
 
 .dash-value{
-  font-size: 16px;
+  font-size: 22px;      /* maior */
   font-weight: 900;
   color: #fff;
   line-height: 1.1;
 }
 
 .dash-subvalue{
-  font-size: 13px;
+  font-size: 15px;      /* maior */
   font-weight: 900;
   color: #fff;
   line-height: 1.2;
 }
 
-/* no celular: 2 colunas (mantive seu bloco final também) */
-@media (max-width: 480px){
-  .dashboard{
-    grid-template-columns: 1fr 1fr;
-  }
-  .dashboard .dash-card:nth-child(3){
-    grid-column: 1 / -1;
-  }
+/* em telas muito estreitas continua bom */
+@media (max-width: 360px){
+  .dash-value{ font-size: 20px; }
+  .dash-subvalue{ font-size: 14px; }
 }
+
 
 
 
