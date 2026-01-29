@@ -33,40 +33,31 @@ body{
   min-height:100vh;
 }
 
-/* HEADER (ROLANDO JUNTO) */
+/* HEADER (MAIS COMPACTO) */
 .app-header{
   position: relative;
-  top: auto;
   z-index: 1;
   background: linear-gradient(180deg, var(--navy), #0b2a5b 65%, #0a2a58);
   color:#fff;
   border-bottom:1px solid rgba(255,255,255,0.12);
-  padding: calc(12px + env(safe-area-inset-top)) 12px 12px 12px;
+  padding: calc(8px + env(safe-area-inset-top)) 10px 8px 10px; /* menor */
 }
 
 .header-top{ text-align:center; }
 
 .header-top h1{
   margin:0;
-  font-size:20px;
+  font-size:18px; /* menor */
   line-height:1.2;
   letter-spacing:0.2px;
 }
 
-.summary{
-  margin:8px 0 0 0;
-  font-weight:800;
-  font-size:14px;
-  color: rgba(255,255,255,0.85);
-}
-
-/* DASHBOARD (TOPO) */
+/* DASHBOARD (mais compacto) */
 .dashboard{
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 10px;
-
+  gap: 8px;               /* menor */
+  margin-top: 8px;        /* menor */
   width: 100%;
   max-width: 720px;
   margin-left: auto;
@@ -77,13 +68,8 @@ body{
   background: rgba(255,255,255,0.16);
   border: 1px solid rgba(255,255,255,0.20);
   border-radius: 14px;
-  padding: 14px 12px;
+  padding: 10px 10px;     /* menor */
   text-align: center;
-}
-
-.dashboard .dash-card:nth-child(1),
-.dashboard .dash-card:nth-child(2){
-  padding: 16px 12px;
 }
 
 .dashboard .dash-card:nth-child(3),
@@ -92,42 +78,54 @@ body{
 }
 
 .dash-label{
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
   color: rgba(255,255,255,0.88);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .dash-value{
-  font-size: 22px;
+  font-size: 18px;  /* menor */
   font-weight: 900;
   color: #fff;
   line-height: 1.1;
 }
 
 .dash-subvalue{
-  font-size: 15px;
+  font-size: 13px;  /* menor */
   font-weight: 900;
   color: #fff;
   line-height: 1.2;
 }
 
-@media (max-width: 360px){
-  .dash-value{ font-size: 20px; }
-  .dash-subvalue{ font-size: 14px; }
+/* BOTÃO TOGGLE DO OPERADOR */
+.pilot-toggle{
+  margin-top: 8px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
 }
 
-/* DADOS DO PILOTO */
+/* DADOS DO OPERADOR (recolhível) */
 .pilot-box{
-  margin-top:12px;
-  display:grid;
+  margin-top:8px;
+  display:none; /* começa fechado */
   grid-template-columns:1fr 1fr;
   gap:8px;
 }
 
+.pilot-box.open{
+  display:grid;
+}
+
 .pilot-box input{
   width:100%;
-  padding:12px;
+  padding:11px;
   border:1px solid rgba(255,255,255,0.25);
   border-radius:14px;
   font-size:16px;
@@ -142,7 +140,7 @@ body{
 
 .pilot-box button{
   grid-column:1 / -1;
-  padding:12px;
+  padding:11px;
   border:none;
   border-radius:14px;
   background: linear-gradient(180deg, var(--yellow), #ffb703);
@@ -151,22 +149,22 @@ body{
   font-size:16px;
 }
 
-/* ABAS */
+/* ABAS (um pouco menores) */
 .tabs{
-  margin-top:12px;
+  margin-top:8px;
   display:flex;
   gap:8px;
 }
 
 .tabs button{
   flex:1;
-  padding:12px 10px;
+  padding:10px 8px;
   border:none;
   border-radius:14px;
   background: rgba(255,255,255,0.14);
   color: rgba(255,255,255,0.95);
   font-weight:900;
-  font-size:14px;
+  font-size:13px;
 }
 
 .tabs button.active{
@@ -178,14 +176,13 @@ body{
 /* MAIN */
 .app-main{
   flex: 1;
-  overflow: visible;
+  overflow: auto; /* se precisar rolar, rola o conteúdo, não “mata” a tela toda */
   padding: 12px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
 
 .tab-content{
   height: auto;
-  overflow: visible;
 }
 
 /* CARDS */
