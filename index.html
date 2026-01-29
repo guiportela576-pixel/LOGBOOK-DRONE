@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=3" />
 
   <!-- iOS (opcional) -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -35,6 +35,7 @@
           <div id="dashThisMonth" class="dash-subvalue">0h 0min • 0 voos</div>
         </div>
 
+        <!-- (AJUSTE) Último voo agora fica DENTRO do dashboard -->
         <div class="dash-card">
           <div class="dash-label">Último voo</div>
           <div id="dashLastFlight" class="dash-subvalue">—</div>
@@ -62,6 +63,7 @@
   </header>
 
   <main class="app-main">
+
     <!-- ================= ABA LOGBOOK ================= -->
     <div id="tab-logbook-content" class="tab-content">
       <section class="card">
@@ -69,7 +71,9 @@
 
         <div class="grid">
           <input type="date" id="date" />
+
           <input type="number" id="flightsCount" placeholder="Nº de voos" min="1" />
+
           <input type="number" id="duration" placeholder="Duração total (min)" min="1" />
 
           <select id="drone"></select>
@@ -90,6 +94,7 @@
 
     <!-- ================= ABA RELATÓRIOS ================= -->
     <div id="tab-reports-content" class="tab-content" style="display:none;">
+
       <section class="card">
         <h2>Horas voadas por Drone</h2>
         <ul id="hoursByDrone" class="list"></ul>
@@ -140,6 +145,7 @@
           <ul id="flightList" class="list"></ul>
         </div>
       </section>
+
     </div>
 
     <!-- ================= ABA CADASTROS ================= -->
@@ -157,20 +163,12 @@
         <ul id="sarpasList" class="list"></ul>
       </section>
     </div>
+
   </main>
 
   <!-- jsPDF primeiro, depois seu app -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="app.js"></script>
-
-  <script>
-    // Service Worker (PWA)
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js").catch(() => {});
-      });
-    }
-  </script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
 
