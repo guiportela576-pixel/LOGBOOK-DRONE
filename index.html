@@ -35,7 +35,6 @@
           <div id="dashThisMonth" class="dash-subvalue">0h 0min • 0 voos</div>
         </div>
 
-        <!-- (AJUSTE) Último voo agora fica DENTRO do dashboard -->
         <div class="dash-card">
           <div class="dash-label">Último voo</div>
           <div id="dashLastFlight" class="dash-subvalue">—</div>
@@ -70,18 +69,22 @@
         <h2>Novo Voo</h2>
 
         <div class="grid">
-          <input type="date" id="date" />
+          <!-- DATA em linha inteira -->
+          <input type="date" id="date" class="span-2" />
 
+          <!-- Duração e Nº de voos lado a lado -->
+          <input type="number" id="duration" placeholder="Duração total (min)" min="1" />
           <input type="number" id="flightsCount" placeholder="Nº de voos" min="1" />
 
-          <input type="number" id="duration" placeholder="Duração total (min)" min="1" />
-
+          <!-- Drone: salvo (select) ao lado do novo -->
           <select id="drone"></select>
           <input type="text" id="newDrone" placeholder="Novo drone" />
 
+          <!-- Local: salvo (select) ao lado do novo -->
           <select id="location"></select>
           <input type="text" id="newLocation" placeholder="Novo local" />
 
+          <!-- SARPAS: salvo (select) ao lado do novo -->
           <select id="sarpas"></select>
           <input type="text" id="newSarpas" placeholder="Novo nº SARPAS" />
         </div>
@@ -171,5 +174,7 @@
   <script src="app.js?v=3"></script>
 </body>
 </html>
+
+
 
 
