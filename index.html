@@ -1,75 +1,177 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Logbook Drone</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>🚁 Logbook Drone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- iOS (opcional) -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 </head>
+
 <body>
+  <header class="app-header">
+    <div class="header-top">
+      <h1>🚁 Logbook Drone</h1>
 
-<header>
-  <h1>🚁 Logbook Drone</h1>
-  <p id="summary">Total: 0h 0min | Nº de Voos: 0</p>
-</header>
+      <!-- RESUMO EM CARDS -->
+      <div class="dashboard">
+        <div class="dash-card">
+          <div class="dash-label">Total de horas</div>
+          <div id="dashTotalHours" class="dash-value">0h 0min</div>
+        </div>
 
-<main>
+        <div class="dash-card">
+          <div class="dash-label">Nº de voos</div>
+          <div id="dashTotalFlights" class="dash-value">0</div>
+        </div>
 
-<section>
-  <h2>Novo Voo</h2>
+        <div class="dash-card">
+          <div class="dash-label">Mês atual</div>
+          <div id="dashThisMonth" class="dash-subvalue">0h 0min • 0 voos</div>
+        </div>
 
-  <input type="date" id="date">
+        <div class="dash-card">
+          <div class="dash-label">Último voo</div>
+          <div id="dashLastFlight" class="dash-subvalue">—</div>
+        </div>
+      </div>
 
-  <input type="number" id="flightsCount" min="1" value="1" placeholder="Nº de voos">
+      <!-- Mantém o summary para compatibilidade (fica escondido) -->
+      <p id="summary" class="summary" style="display:none;"></p>
+    </div>
 
-  <input type="number" id="duration" placeholder="Duração total (min)">
+    <!-- DADOS FIXOS DO OPERADOR -->
+    <div id="pilotBox" class="pilot-box">
+      <input type="text" id="pilotName" placeholder="Nome completo" />
+      <input type="text" id="pilotCPF" placeholder="CPF" />
+      <input type="text" id="pilotSarpas" placeholder="SARPAS do operador" />
+      <button type="button" onclick="savePilot()">Salvar dados</button>
+    </div>
 
-  <select id="drone"></select>
-  <input type="text" id="newDrone" placeholder="Novo drone">
+    <!-- MENU DE ABAS -->
+    <div class="tabs">
+      <button type="button" onclick="showTab('logbook')" id="tab-logbook" class="active">📘 Logbook</button>
+      <button type="button" onclick="showTab('reports')" id="tab-reports">📊 Relatórios</button>
+      <button type="button" onclick="showTab('settings')" id="tab-settings">⚙️ Cadastros</button>
+    </div>
+  </header>
 
-  <select id="location"></select>
-  <input type="text" id="newLocation" placeholder="Novo local">
+  <main class="app-main">
+    <!-- ================= ABA LOGBOOK ================= -->
+    <div id="tab-logbook-content" class="tab-content">
+      <section class="card">
+        <h2>Novo Voo</h2>
 
-  <select id="sarpas"></select>
-  <input type="text" id="newSarpas" placeholder="Novo nº SARPAS">
+        <div class="grid">
+          <input type="date" id="date" />
+          <input type="number" id="flightsCount" placeholder="Nº de voos" min="1" />
+          <input type="number" id="duration" placeholder="Duração total (min)" min="1" />
 
-  <textarea id="notes" placeholder="Observações"></textarea>
+          <select id="drone"></select>
+          <input type="text" id="newDrone" placeholder="Novo drone" />
 
-  <button onclick="addFlight()">Salvar Voo</button>
-</section>
+          <select id="location"></select>
+          <input type="text" id="newLocation" placeholder="Novo local" />
 
-<!-- 🔹 NOVO BLOCO FIXO -->
-<section>
-  <h2>Horas Voada por Drone</h2>
-  <ul id="hoursByDrone"></ul>
-</section>
+          <select id="sarpas"></select>
+          <input type="text" id="newSarpas" placeholder="Novo nº SARPAS" />
+        </div>
 
-<section>
-  <h2>Gerenciar Cadastros</h2>
+        <textarea id="notes" placeholder="Observações"></textarea>
 
-  <h3>Drones</h3>
-  <ul id="droneList"></ul>
+        <button type="button" class="primary" onclick="addFlight()">Salvar Voo</button>
+      </section>
+    </div>
 
-  <h3>Locais</h3>
-  <ul id="locationList"></ul>
+    <!-- ================= ABA RELATÓRIOS ================= -->
+    <div id="tab-reports-content" class="tab-content" style="display:none;">
+      <section class="card">
+        <h2>Horas voadas por Drone</h2>
+        <ul id="hoursByDrone" class="list"></ul>
+      </section>
 
-  <h3>SARPAS</h3>
-  <ul id="sarpasList"></ul>
-</section>
+      <section class="card">
+        <button type="button" class="ghost" onclick="toggleMonthly()" id="toggleMonthlyBtn">
+          📅 Ver relatório mensal
+        </button>
 
-<section>
-  <button onclick="exportCSV()">📁 Exportar para Excel</button>
-</section>
+        <div id="monthlyBox" style="display:none; margin-top:10px;">
+          <h2>📅 Relatório Mensal</h2>
+          <ul id="monthlySummary" class="list"></ul>
+        </div>
+      </section>
 
-<section>
-  <h2>Histórico de Voos</h2>
-  <ul id="flightList"></ul>
-</section>
+      <section class="card">
+        <h2>Exportação</h2>
+        <div class="row">
+          <button type="button" onclick="exportCSV()">📁 Exportar para Excel</button>
+          <button type="button" onclick="exportPDF()">📄 Exportar PDF</button>
+        </div>
+      </section>
 
-</main>
+      <section class="card">
+        <h3>🔎 Filtrar Voos</h3>
 
-<script src="app.js"></script>
+        <div class="grid">
+          <input type="date" id="filterDate">
+          <select id="filterDrone"></select>
+          <select id="filterLocation"></select>
+          <select id="filterSarpas"></select>
+        </div>
+
+        <div class="row">
+          <button type="button" onclick="renderFlights()">Aplicar Filtro</button>
+          <button type="button" class="ghost" onclick="clearFilters()">Limpar</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="row space">
+          <h2>Histórico de Voos</h2>
+          <button type="button" class="ghost" onclick="toggleHistory()">📂 Mostrar / Ocultar</button>
+        </div>
+
+        <div id="historyContainer" style="display:none; margin-top:10px;">
+          <ul id="flightList" class="list"></ul>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= ABA CADASTROS ================= -->
+    <div id="tab-settings-content" class="tab-content" style="display:none;">
+      <section class="card">
+        <h2>Gerenciar Cadastros</h2>
+
+        <h3>Drones</h3>
+        <ul id="droneList" class="list"></ul>
+
+        <h3>Locais</h3>
+        <ul id="locationList" class="list"></ul>
+
+        <h3>SARPAS</h3>
+        <ul id="sarpasList" class="list"></ul>
+      </section>
+    </div>
+  </main>
+
+  <!-- jsPDF primeiro, depois seu app -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="app.js"></script>
+
+  <script>
+    // Service Worker (PWA)
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>
+
+
