@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
 
   <!-- iOS (opcional) -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -21,22 +21,22 @@
       <!-- RESUMO EM CARDS -->
       <div class="dashboard">
         <div class="dash-card">
-          <div class="dash-label">Total de horas</div>
+          <div class="dash-label">Total</div>
           <div id="dashTotalHours" class="dash-value">0h 0min</div>
         </div>
 
         <div class="dash-card">
-          <div class="dash-label">Nº de voos</div>
+          <div class="dash-label">Voos</div>
           <div id="dashTotalFlights" class="dash-value">0</div>
         </div>
 
         <div class="dash-card">
-          <div class="dash-label">Mês atual</div>
-          <div id="dashThisMonth" class="dash-subvalue">0h 0min • 0 voos</div>
+          <div class="dash-label">Mês</div>
+          <div id="dashThisMonth" class="dash-subvalue">0h 0min • 0</div>
         </div>
 
         <div class="dash-card">
-          <div class="dash-label">Último voo</div>
+          <div class="dash-label">Último</div>
           <div id="dashLastFlight" class="dash-subvalue">—</div>
         </div>
       </div>
@@ -44,7 +44,7 @@
       <p id="summary" class="summary" style="display:none;"></p>
     </div>
 
-    <!-- (NOVO) BOTÃO RECOLHER/EXPANDIR DADOS DO OPERADOR -->
+    <!-- BOTÃO RECOLHER/EXPANDIR DADOS DO OPERADOR -->
     <button type="button" class="pilot-toggle" id="pilotToggle" onclick="togglePilotBox()">
       👤 Dados do operador
     </button>
@@ -76,8 +76,8 @@
         <div class="grid">
           <input type="date" id="date" class="span-2" />
 
-          <input type="number" id="duration" placeholder="Duração total (min)" min="1" />
-          <input type="number" id="flightsCount" placeholder="Nº de voos" min="1" />
+          <input type="number" id="duration" placeholder="Duração (min)" min="1" />
+          <input type="number" id="flightsCount" placeholder="Nº voos" min="1" />
 
           <select id="drone"></select>
           <input type="text" id="newDrone" placeholder="Novo drone" />
@@ -86,7 +86,7 @@
           <input type="text" id="newLocation" placeholder="Novo local" />
 
           <select id="sarpas"></select>
-          <input type="text" id="newSarpas" placeholder="Novo nº SARPAS" />
+          <input type="text" id="newSarpas" placeholder="Novo SARPAS" />
         </div>
 
         <textarea id="notes" placeholder="Observações"></textarea>
@@ -105,14 +105,14 @@
           <select id="opSarpas" class="span-2"></select>
         </div>
 
-        <div id="opIdleBox" style="margin-top:10px;">
+        <div id="opIdleBox" style="margin-top:8px;">
           <button type="button" class="btn-green" onclick="startOperation()">Iniciar Voo</button>
         </div>
 
-        <div id="opRunningBox" style="display:none; margin-top:12px;">
+        <div id="opRunningBox" style="display:none; margin-top:10px;">
           <div id="opTimer" class="op-timer">00:00:00</div>
           <div class="op-hint">Cronômetro em andamento…</div>
-          <div style="margin-top:10px;">
+          <div style="margin-top:8px;">
             <button type="button" class="btn-red" onclick="endOperation()">Encerrar Voo</button>
           </div>
         </div>
@@ -124,7 +124,7 @@
     <!-- ================= ABA RELATÓRIOS ================= -->
     <div id="tab-reports-content" class="tab-content" style="display:none;">
       <section class="card">
-        <h2>Horas voadas por Drone</h2>
+        <h2>Horas por Drone</h2>
         <ul id="hoursByDrone" class="list"></ul>
       </section>
 
@@ -142,8 +142,8 @@
       <section class="card">
         <h2>Exportação</h2>
         <div class="row">
-          <button type="button" onclick="exportCSV()">📁 Exportar para Excel</button>
-          <button type="button" onclick="exportPDF()">📄 Exportar PDF</button>
+          <button type="button" onclick="exportCSV()">📁 Excel</button>
+          <button type="button" onclick="exportPDF()">📄 PDF</button>
         </div>
       </section>
 
@@ -158,14 +158,14 @@
         </div>
 
         <div class="row">
-          <button type="button" onclick="renderFlights()">Aplicar Filtro</button>
+          <button type="button" onclick="renderFlights()">Aplicar</button>
           <button type="button" class="ghost" onclick="clearFilters()">Limpar</button>
         </div>
       </section>
 
       <section class="card">
         <div class="row space">
-          <h2>Histórico de Voos</h2>
+          <h2>Histórico</h2>
           <button type="button" class="ghost" onclick="toggleHistory()">📂 Mostrar / Ocultar</button>
         </div>
 
@@ -178,7 +178,7 @@
     <!-- ================= ABA CADASTROS ================= -->
     <div id="tab-settings-content" class="tab-content" style="display:none;">
       <section class="card">
-        <h2>Gerenciar Cadastros</h2>
+        <h2>Cadastros</h2>
 
         <h3>Drones</h3>
         <ul id="droneList" class="list"></ul>
@@ -194,7 +194,7 @@
   </main>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
 
