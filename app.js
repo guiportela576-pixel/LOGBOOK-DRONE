@@ -17,21 +17,14 @@ function saveAll() {
   localStorage.setItem("pilot", JSON.stringify(pilot));
 }
 
-/* =======================
-   MIGRAÇÃO: PADRONIZA flightsCount
-======================= */
+/* MIGRAÇÃO flightsCount */
 function migrateFlightsCount() {
   let changed = false;
 
   flights = flights.map(f => {
     if (!f || typeof f !== "object") return f;
 
-    const legacy =
-      f.flightsCount ??
-      f.flights ??
-      f.flightsNum ??
-      1;
-
+    const legacy = f.flightsCount ?? f.flights ?? f.flightsNum ?? 1;
     const n = Number(legacy);
     const flightsCount = (Number.isFinite(n) && n > 0) ? n : 1;
 
@@ -42,7 +35,6 @@ function migrateFlightsCount() {
       delete nf.flightsNum;
       return nf;
     }
-
     return f;
   });
 
@@ -54,9 +46,7 @@ function getFlightsCount(f) {
   return (Number.isFinite(n) && n > 0) ? n : 1;
 }
 
-/* =======================
-   TOGGLE DADOS DO OPERADOR
-======================= */
+/* TOGGLE OPERADOR */
 function togglePilotBox(forceOpen = null) {
   const box = document.getElementById("pilotBox");
   if (!box) return;
@@ -82,16 +72,14 @@ function updatePilotToggleLabel() {
   btn.textContent = isOpen ? `✖ Fechar dados do operador${shortName}` : `👤 Dados do operador${shortName}`;
 }
 
-/* =======================
-   OPERADOR
-======================= */
+/* OPERADOR */
 function savePilot() {
   pilot.name = document.getElementById("pilotName").value;
   pilot.cpf = document.getElementById("pilotCPF").value;
   pilot.sarpas = document.getElementById("pilotSarpas").value;
   saveAll();
   updatePilotToggleLabel();
-  togglePilotBox(false); // fecha depois de salvar (deixa o topo pequeno)
+  togglePilotBox(false);
   alert("Dados do operador salvos");
 }
 
@@ -107,9 +95,7 @@ function loadPilot() {
   updatePilotToggleLabel();
 }
 
-/* =======================
-   ADICIONAR VOO (LOGBOOK)
-======================= */
+/* LOGBOOK */
 function addFlight() {
   const date = document.getElementById("date").value;
   const flightsNum = Number(document.getElementById("flightsCount").value) || 1;
@@ -149,9 +135,7 @@ function addFlight() {
   render();
 }
 
-/* =======================
-   OPERAÇÃO (CRONÔMETRO)
-======================= */
+/* OPERAÇÃO */
 let opInterval = null;
 let opStartMs = null;
 
@@ -308,9 +292,7 @@ function resetOperationUI() {
   if (timerEl) timerEl.textContent = "00:00:00";
 }
 
-/* =======================
-   RESUMO (DASHBOARD)
-======================= */
+/* DASHBOARD */
 function renderSummary() {
   const toHM = (minutes) => {
     const m = Math.max(0, Math.floor(Number(minutes) || 0));
@@ -352,7 +334,7 @@ function renderSummary() {
 
   if (elTotalHours) elTotalHours.textContent = toHM(totalMinutes);
   if (elTotalFlights) elTotalFlights.textContent = String(totalFlights);
-  if (elThisMonth) elThisMonth.textContent = `${toHM(monthMinutes)} • ${monthFlights} voos`;
+  if (elThisMonth) elThisMonth.textContent = `${toHM(monthMinutes)} • ${monthFlights}`;
 
   const elLast = document.getElementById("dashLastFlight");
   if (elLast) {
@@ -370,14 +352,12 @@ function renderSummary() {
       const flts = getFlightsCount(last);
       const h = Math.floor(mins / 60);
       const mm = mins % 60;
-      elLast.textContent = `${d} • ${drone} • ${h}h ${mm}min • ${flts} voo(s)`;
+      elLast.textContent = `${d} • ${drone} • ${h}h${mm} • ${flts}`;
     }
   }
 }
 
-/* =======================
-   LISTAS / FILTROS / RENDER
-======================= */
+/* CADASTROS/RELATÓRIOS (iguais) */
 function renderHoursByDrone() {
   const ul = document.getElementById("hoursByDrone");
   if (!ul) return;
@@ -594,9 +574,7 @@ function exportPDF() {
   doc.save("logbook.pdf");
 }
 
-/* =======================
-   ABAS
-======================= */
+/* ABAS */
 function showTab(tab) {
   document.querySelectorAll(".tab-content").forEach(div => {
     div.style.display = "none";
@@ -647,7 +625,6 @@ function render() {
   renderOperationDroneSelect();
   renderOperationSarpasSelect();
 
-  // mantém recolhido por padrão (topo pequeno)
   togglePilotBox(false);
 }
 
