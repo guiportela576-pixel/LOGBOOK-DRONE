@@ -1,15 +1,14 @@
 :root{
-  /* Paleta “institucional” (inspirada) */
   --bg:#f3f6fb;
   --card:#ffffff;
   --text:#0b1220;
   --muted:#52617a;
   --line:#dbe3f0;
 
-  --navy:#0b2a5b;     /* azul marinho */
-  --blue:#0a66c2;     /* azul principal */
-  --blue2:#0a84ff;    /* azul iOS */
-  --yellow:#ffcc33;   /* destaque */
+  --navy:#0b2a5b;
+  --blue:#0a66c2;
+  --blue2:#0a84ff;
+  --yellow:#ffcc33;
 
   --ghost:#e9edf6;
   --danger:#d92d20;
@@ -29,8 +28,6 @@ body{
   margin:0;
   color:var(--text);
   font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-
-  /* APP FULLSCREEN */
   display:flex;
   flex-direction:column;
   min-height:100vh;
@@ -47,10 +44,7 @@ body{
   padding: calc(12px + env(safe-area-inset-top)) 12px 12px 12px;
 }
 
-/* Topo */
-.header-top{
-  text-align:center;
-}
+.header-top{ text-align:center; }
 
 .header-top h1{
   margin:0;
@@ -64,6 +58,63 @@ body{
   font-weight:800;
   font-size:14px;
   color: rgba(255,255,255,0.85);
+}
+
+/* DASHBOARD (TOPO) */
+.dashboard{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+
+  width: 100%;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dash-card{
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 14px;
+  padding: 14px 12px;
+  text-align: center;
+}
+
+.dashboard .dash-card:nth-child(1),
+.dashboard .dash-card:nth-child(2){
+  padding: 16px 12px;
+}
+
+.dashboard .dash-card:nth-child(3),
+.dashboard .dash-card:nth-child(4){
+  grid-column: 1 / -1;
+}
+
+.dash-label{
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.88);
+  margin-bottom: 8px;
+}
+
+.dash-value{
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.dash-subvalue{
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.2;
+}
+
+@media (max-width: 360px){
+  .dash-value{ font-size: 20px; }
+  .dash-subvalue{ font-size: 14px; }
 }
 
 /* DADOS DO PILOTO */
@@ -147,18 +198,9 @@ body{
   box-shadow: var(--shadow);
 }
 
-h2, h3{
-  margin:0 0 10px 0;
-}
-
-h2{
-  font-size:18px;
-}
-
-h3{
-  font-size:15px;
-  color: var(--muted);
-}
+h2, h3{ margin:0 0 10px 0; }
+h2{ font-size:18px; }
+h3{ font-size:15px; color: var(--muted); }
 
 /* Layout de campos */
 .grid{
@@ -167,10 +209,7 @@ h3{
   gap:10px;
 }
 
-/* campo ocupando a linha inteira */
-.span-2{
-  grid-column: 1 / -1;
-}
+.span-2{ grid-column: 1 / -1; }
 
 /* Inputs */
 input, select, textarea{
@@ -194,7 +233,7 @@ input:focus, select:focus, textarea:focus{
   box-shadow: 0 0 0 4px rgba(10,102,194,0.12);
 }
 
-/* Botões */
+/* Botões padrão */
 button{
   width:100%;
   padding:12px;
@@ -206,9 +245,7 @@ button{
   font-size:16px;
 }
 
-button:active{
-  transform: translateY(1px);
-}
+button:active{ transform: translateY(1px); }
 
 button.ghost{
   background: var(--ghost);
@@ -217,6 +254,15 @@ button.ghost{
 
 button.primary{
   background: linear-gradient(180deg, var(--blue2), #0a6fe0);
+}
+
+/* Botões Operação */
+.btn-green{
+  background: linear-gradient(180deg, #16a34a, #15803d);
+}
+
+.btn-red{
+  background: linear-gradient(180deg, #ef4444, #b91c1c);
 }
 
 .row{
@@ -229,9 +275,7 @@ button.primary{
   justify-content:space-between;
 }
 
-.row .ghost{
-  width:auto;
-}
+.row .ghost{ width:auto; }
 
 /* Listas */
 .list{
@@ -245,11 +289,8 @@ button.primary{
   border-bottom:1px solid var(--line);
 }
 
-.list li:last-child{
-  border-bottom:none;
-}
+.list li:last-child{ border-bottom:none; }
 
-/* Pequenos botões */
 .small-btn{
   width:auto;
   padding:8px 10px;
@@ -259,66 +300,38 @@ button.primary{
   color: var(--navy);
 }
 
-/* ===== DASHBOARD (TOPO) — AJUSTADO ===== */
-.dashboard{
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* horas e nº voos lado a lado */
-  gap: 10px;
-  margin-top: 10px;
-
-  /* centraliza e ocupa melhor a tela */
-  width: 100%;
-  max-width: 720px;
-  margin-left: auto;
-  margin-right: auto;
+/* Operação: Timer */
+.op-timer{
+  font-size: 36px;
+  font-weight: 900;
+  text-align: center;
+  padding: 14px 10px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+  letter-spacing: 1px;
 }
 
-.dash-card{
-  background: rgba(255,255,255,0.16);
-  border: 1px solid rgba(255,255,255,0.20);
+.op-hint{
+  margin-top: 8px;
+  text-align: center;
+  font-weight: 900;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.op-msg{
+  margin-top: 12px;
+  padding: 12px;
   border-radius: 14px;
-  padding: 14px 12px; /* maior */
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+  font-weight: 900;
   text-align: center;
 }
 
-/* deixa os 2 primeiros (horas e voos) ainda mais “fortes” */
-.dashboard .dash-card:nth-child(1),
-.dashboard .dash-card:nth-child(2){
-  padding: 16px 12px;
-}
-
-/* mês atual e último voo ocupam a linha inteira */
-.dashboard .dash-card:nth-child(3),
-.dashboard .dash-card:nth-child(4){
-  grid-column: 1 / -1;
-}
-
-.dash-label{
-  font-size: 13px;
-  font-weight: 900;
-  color: rgba(255,255,255,0.88);
-  margin-bottom: 8px;
-}
-
-.dash-value{
-  font-size: 22px;      /* maior */
-  font-weight: 900;
-  color: #fff;
-  line-height: 1.1;
-}
-
-.dash-subvalue{
-  font-size: 15px;      /* maior */
-  font-weight: 900;
-  color: #fff;
-  line-height: 1.2;
-}
-
-/* em telas muito estreitas continua bom */
-@media (max-width: 360px){
-  .dash-value{ font-size: 20px; }
-  .dash-subvalue{ font-size: 14px; }
-}
 
 
 
