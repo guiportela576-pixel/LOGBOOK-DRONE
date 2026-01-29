@@ -19,7 +19,6 @@ function saveAll() {
 
 /* =======================
    MIGRAÇÃO: PADRONIZA flightsCount
-   - converte registros antigos (flights / flightsNum) para flightsCount
 ======================= */
 function migrateFlightsCount() {
   let changed = false;
@@ -36,7 +35,6 @@ function migrateFlightsCount() {
     const n = Number(legacy);
     const flightsCount = (Number.isFinite(n) && n > 0) ? n : 1;
 
-    // se tinha campo antigo, migra
     if (f.flightsCount !== flightsCount || ("flights" in f) || ("flightsNum" in f)) {
       changed = true;
       const nf = { ...f, flightsCount };
@@ -74,7 +72,8 @@ function loadPilot() {
 }
 
 /* =======================
-   ADICIONAR VOO
+   ADICIONAR VOO (LOGBOOK)
+   - Local NÃO é obrigatório (já não era)
 ======================= */
 function addFlight() {
   const date = document.getElementById("date").value;
@@ -91,6 +90,7 @@ function addFlight() {
 
   const notes = document.getElementById("notes").value;
 
+  // obrigatório: data, duração, drone
   if (!date || !duration || !drone) {
     alert("Preencha data, duração e drone");
     return;
@@ -116,7 +116,141 @@ function addFlight() {
 }
 
 /* =======================
-   RESUMO
+   OPERAÇÃO (CRONÔMETRO)
+======================= */
+let opInterval = null;
+let opStartMs = null;
+
+function formatHHMMSS(totalSeconds) {
+  const s = Math.max(0, Math.floor(totalSeconds || 0));
+  const hh = String(Math.floor(s / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+  const ss = String(s % 60).padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
+}
+
+function todayISO() {
+  const d = new Date();
+  return d.toISOString().slice(0, 10);
+}
+
+function renderOperationSelect() {
+  const sel = document.getElementById("opDrone");
+  if (!sel) return;
+
+  sel.innerHTML = "";
+
+  if (!drones.length) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "Nenhum drone cadastrado ainda";
+    sel.appendChild(opt);
+    sel.disabled = true;
+    return;
+  }
+
+  sel.disabled = false;
+
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = "Selecione o drone";
+  sel.appendChild(opt0);
+
+  drones.forEach(item => {
+    const opt = document.createElement("option");
+    opt.value = item;
+    opt.textContent = item;
+    sel.appendChild(opt);
+  });
+}
+
+function showOpMessage(text) {
+  const el = document.getElementById("opMsg");
+  if (!el) return;
+  el.style.display = "block";
+  el.textContent = text;
+  setTimeout(() => {
+    el.style.display = "none";
+  }, 3500);
+}
+
+function startOperation() {
+  const drone = document.getElementById("opDrone")?.value || "";
+  if (!drone) {
+    alert("Selecione um drone para iniciar o voo");
+    return;
+  }
+
+  if (opInterval) return; // já rodando
+
+  opStartMs = Date.now();
+
+  const idle = document.getElementById("opIdleBox");
+  const run = document.getElementById("opRunningBox");
+  if (idle) idle.style.display = "none";
+  if (run) run.style.display = "block";
+
+  const timerEl = document.getElementById("opTimer");
+  if (timerEl) timerEl.textContent = "00:00:00";
+
+  opInterval = setInterval(() => {
+    const elapsedSec = Math.floor((Date.now() - opStartMs) / 1000);
+    if (timerEl) timerEl.textContent = formatHHMMSS(elapsedSec);
+  }, 250);
+}
+
+function endOperation() {
+  if (!opInterval || !opStartMs) return;
+
+  clearInterval(opInterval);
+  opInterval = null;
+
+  const elapsedSec = Math.max(0, Math.floor((Date.now() - opStartMs) / 1000));
+  opStartMs = null;
+
+  const drone = document.getElementById("opDrone")?.value || "";
+  if (!drone) {
+    alert("Drone inválido. Selecione o drone novamente.");
+    resetOperationUI();
+    return;
+  }
+
+  // minutos: arredonda pra cima para não salvar 0 min
+  const minutes = Math.max(1, Math.ceil(elapsedSec / 60));
+
+  // cadastra automaticamente
+  flights.push({
+    date: todayISO(),
+    flightsCount: 1,
+    duration: minutes,
+    drone,
+    location: "",
+    sarpas: "",
+    notes: ""
+  });
+
+  // garante que drone está salvo na lista (segurança)
+  if (!drones.includes(drone)) drones.push(drone);
+
+  saveAll();
+  render(); // atualiza dashboard, relatórios, etc.
+
+  resetOperationUI();
+  showOpMessage(`Voo registrado: ${minutes} min • 1 voo`);
+}
+
+function resetOperationUI() {
+  const idle = document.getElementById("opIdleBox");
+  const run = document.getElementById("opRunningBox");
+  if (idle) idle.style.display = "block";
+  if (run) run.style.display = "none";
+
+  const timerEl = document.getElementById("opTimer");
+  if (timerEl) timerEl.textContent = "00:00:00";
+}
+
+/* =======================
+   RESUMO (DASHBOARD)
 ======================= */
 function renderSummary() {
   const toHM = (minutes) => {
@@ -129,10 +263,9 @@ function renderSummary() {
   let totalMinutes = 0;
   let totalFlights = 0;
 
-  // mês atual
   const now = new Date();
   const curY = now.getFullYear();
-  const curM = String(now.getMonth() + 1).padStart(2, "0"); // 01..12
+  const curM = String(now.getMonth() + 1).padStart(2, "0");
 
   let monthMinutes = 0;
   let monthFlights = 0;
@@ -154,11 +287,9 @@ function renderSummary() {
     }
   });
 
-  // mantém o summary antigo (oculto, mas útil pra compatibilidade)
   const summary = document.getElementById("summary");
   if (summary) summary.innerText = `Total: ${toHM(totalMinutes)} | Nº de Voos: ${totalFlights}`;
 
-  // atualiza os cards
   const elTotalHours = document.getElementById("dashTotalHours");
   const elTotalFlights = document.getElementById("dashTotalFlights");
   const elThisMonth = document.getElementById("dashThisMonth");
@@ -167,7 +298,6 @@ function renderSummary() {
   if (elTotalFlights) elTotalFlights.textContent = String(totalFlights);
   if (elThisMonth) elThisMonth.textContent = `${toHM(monthMinutes)} • ${monthFlights} voos`;
 
-  // ===== Último voo (mais recente por data) =====
   const elLast = document.getElementById("dashLastFlight");
   if (elLast) {
     let last = null;
@@ -198,11 +328,14 @@ function renderSummary() {
 ======================= */
 function renderHoursByDrone() {
   const ul = document.getElementById("hoursByDrone");
+  if (!ul) return;
+
   ul.innerHTML = "";
 
   const totals = {};
   flights.forEach(f => {
-    totals[f.drone] = (totals[f.drone] || 0) + (Number(f.duration) || 0);
+    const d = f?.drone || "-";
+    totals[d] = (totals[d] || 0) + (Number(f.duration) || 0);
   });
 
   Object.keys(totals).forEach(drone => {
@@ -231,6 +364,8 @@ function deleteDroneHistory(droneName) {
 ======================= */
 function renderManage(id, list, type) {
   const ul = document.getElementById(id);
+  if (!ul) return;
+
   ul.innerHTML = "";
 
   list.forEach((item, i) => {
@@ -252,10 +387,12 @@ function deleteItem(type, index) {
 }
 
 /* =======================
-   HISTÓRICO
+   HISTÓRICO + FILTROS
 ======================= */
 function renderFlights() {
   const list = document.getElementById("flightList");
+  if (!list) return;
+
   list.innerHTML = "";
 
   const fDate = document.getElementById("filterDate")?.value || "";
@@ -266,8 +403,8 @@ function renderFlights() {
   let filtered = flights.filter(f =>
     (!fDate || f.date === fDate) &&
     (!fDrone || f.drone === fDrone) &&
-    (!fLocation || f.location === fLocation) &&
-    (!fSarpas || f.sarpas === fSarpas)
+    (!fLocation || (f.location || "") === fLocation) &&
+    (!fSarpas || (f.sarpas || "") === fSarpas)
   );
 
   [...filtered].reverse().forEach(f => {
@@ -275,10 +412,10 @@ function renderFlights() {
 
     const li = document.createElement("li");
     li.innerHTML = `
-      <strong>${f.drone}</strong><br>
-      Data: ${f.date}<br>
+      <strong>${f.drone || "-"}</strong><br>
+      Data: ${f.date || "-"}<br>
       Nº de Voos: ${getFlightsCount(f)}<br>
-      Duração: ${f.duration} min<br>
+      Duração: ${Number(f.duration) || 0} min<br>
       Local: ${f.location || "-"}<br>
       SARPAS: ${f.sarpas || "-"}<br>
       ${f.notes || ""}
@@ -324,21 +461,9 @@ function exportCSV() {
   a.click();
 }
 
-/* =======================
-   RENDER GERAL
-======================= */
-function fillSelect(el, list) {
-  el.innerHTML = "<option value=''>Selecione</option>";
-  list.forEach(item => {
-    const opt = document.createElement("option");
-    opt.value = item;
-    opt.textContent = item;
-    el.appendChild(opt);
-  });
-}
-
 function toggleHistory() {
   const box = document.getElementById("historyContainer");
+  if (!box) return;
   box.style.display = box.style.display === "none" ? "block" : "none";
 }
 
@@ -352,11 +477,12 @@ function clearFilters() {
 
 function editFlight(index) {
   const f = flights[index];
+  if (!f) return;
 
   const newFlights = prompt("Nº de voos:", String(getFlightsCount(f)));
   if (newFlights === null) return;
 
-  const newDuration = prompt("Duração total em minutos:", f.duration);
+  const newDuration = prompt("Duração total em minutos:", String(f.duration || 0));
   if (newDuration === null) return;
 
   const flightsNum = parseInt(newFlights, 10);
@@ -367,8 +493,8 @@ function editFlight(index) {
     return;
   }
 
-  f.flightsCount = flightsNum;
-  f.duration = durationNum;
+  f.flightsCount = Math.max(1, flightsNum);
+  f.duration = Math.max(1, durationNum);
 
   saveAll();
   render();
@@ -388,9 +514,7 @@ function renderMonthlySummary() {
     const [year, month] = f.date.split("-");
     const key = `${month}/${year}`;
 
-    if (!byMonth[key]) {
-      byMonth[key] = { minutes: 0, flights: 0 };
-    }
+    if (!byMonth[key]) byMonth[key] = { minutes: 0, flights: 0 };
 
     byMonth[key].minutes += Number(f.duration) || 0;
     byMonth[key].flights += getFlightsCount(f);
@@ -415,6 +539,7 @@ function renderMonthlySummary() {
 function toggleMonthly() {
   const box = document.getElementById("monthlyBox");
   const btn = document.getElementById("toggleMonthlyBtn");
+  if (!box || !btn) return;
 
   if (box.style.display === "none") {
     box.style.display = "block";
@@ -572,6 +697,9 @@ function exportPDF() {
   doc.save("logbook-drone-anac-completo.pdf");
 }
 
+/* =======================
+   ABAS
+======================= */
 function showTab(tab) {
   document.querySelectorAll(".tab-content").forEach(div => {
     div.style.display = "none";
@@ -586,6 +714,20 @@ function showTab(tab) {
 
   if (content) content.style.display = "block";
   if (button) button.classList.add("active");
+}
+
+/* =======================
+   RENDER GERAL
+======================= */
+function fillSelect(el, list) {
+  if (!el) return;
+  el.innerHTML = "<option value=''>Selecione</option>";
+  list.forEach(item => {
+    const opt = document.createElement("option");
+    opt.value = item;
+    opt.textContent = item;
+    el.appendChild(opt);
+  });
 }
 
 function render() {
@@ -607,6 +749,9 @@ function render() {
   renderManage("sarpasList", sarpasList, "sarpas");
 
   renderFlights();
+
+  // Operação: atualiza lista de drones
+  renderOperationSelect();
 }
 
 /* INIT */
