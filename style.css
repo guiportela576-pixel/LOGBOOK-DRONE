@@ -11,7 +11,6 @@
   --yellow:#ffcc33;
 
   --ghost:#e9edf6;
-  --danger:#d92d20;
 
   --shadow: 0 8px 20px rgba(11,42,91,0.10);
   --radius:16px;
@@ -28,36 +27,37 @@ body{
   margin:0;
   color:var(--text);
   font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  display:flex;
-  flex-direction:column;
-  min-height:100vh;
+
+  /* IMPORTANTE: deixa a página rolar inteira (header + conteúdo) */
+  overflow-y: auto;
 }
 
-/* HEADER (MAIS COMPACTO) */
+/* HEADER MAIS BAIXO */
 .app-header{
   position: relative;
   z-index: 1;
   background: linear-gradient(180deg, var(--navy), #0b2a5b 65%, #0a2a58);
   color:#fff;
   border-bottom:1px solid rgba(255,255,255,0.12);
-  padding: calc(8px + env(safe-area-inset-top)) 10px 8px 10px; /* menor */
+
+  padding: calc(6px + env(safe-area-inset-top)) 8px 6px 8px;
 }
 
 .header-top{ text-align:center; }
 
 .header-top h1{
   margin:0;
-  font-size:18px; /* menor */
-  line-height:1.2;
-  letter-spacing:0.2px;
+  font-size:16px;
+  line-height:1.15;
 }
 
-/* DASHBOARD (mais compacto) */
+/* DASHBOARD 2x2 (SEM cards gigantes) */
 .dashboard{
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;               /* menor */
-  margin-top: 8px;        /* menor */
+  gap: 6px;
+  margin-top: 6px;
+
   width: 100%;
   max-width: 720px;
   margin-left: auto;
@@ -65,106 +65,99 @@ body{
 }
 
 .dash-card{
-  background: rgba(255,255,255,0.16);
-  border: 1px solid rgba(255,255,255,0.20);
-  border-radius: 14px;
-  padding: 10px 10px;     /* menor */
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 12px;
+  padding: 8px 8px;
   text-align: center;
 }
 
-.dashboard .dash-card:nth-child(3),
-.dashboard .dash-card:nth-child(4){
-  grid-column: 1 / -1;
-}
-
 .dash-label{
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
   color: rgba(255,255,255,0.88);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .dash-value{
-  font-size: 18px;  /* menor */
+  font-size: 16px;
   font-weight: 900;
   color: #fff;
-  line-height: 1.1;
+  line-height: 1.05;
 }
 
 .dash-subvalue{
-  font-size: 13px;  /* menor */
+  font-size: 11px;
   font-weight: 900;
   color: #fff;
-  line-height: 1.2;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* BOTÃO TOGGLE DO OPERADOR */
+/* BOTÃO TOGGLE DO OPERADOR (menor) */
 .pilot-toggle{
-  margin-top: 8px;
+  margin-top: 6px;
   width: 100%;
-  padding: 10px;
-  border: 1px solid rgba(255,255,255,0.22);
-  border-radius: 14px;
-  background: rgba(255,255,255,0.12);
+  padding: 8px 10px;
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.10);
   color: #fff;
   font-weight: 900;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* DADOS DO OPERADOR (recolhível) */
 .pilot-box{
-  margin-top:8px;
-  display:none; /* começa fechado */
+  margin-top:6px;
+  display:none;
   grid-template-columns:1fr 1fr;
-  gap:8px;
+  gap:6px;
 }
-
-.pilot-box.open{
-  display:grid;
-}
+.pilot-box.open{ display:grid; }
 
 .pilot-box input{
   width:100%;
-  padding:11px;
-  border:1px solid rgba(255,255,255,0.25);
-  border-radius:14px;
-  font-size:16px;
+  padding:9px;
+  border:1px solid rgba(255,255,255,0.22);
+  border-radius:12px;
+  font-size:14px;
   background: rgba(255,255,255,0.10);
   color:#fff;
   outline:none;
 }
 
-.pilot-box input::placeholder{
-  color: rgba(255,255,255,0.75);
-}
+.pilot-box input::placeholder{ color: rgba(255,255,255,0.75); }
 
 .pilot-box button{
   grid-column:1 / -1;
-  padding:11px;
+  padding:9px;
   border:none;
-  border-radius:14px;
+  border-radius:12px;
   background: linear-gradient(180deg, var(--yellow), #ffb703);
   color:#1b1b1b;
   font-weight:900;
-  font-size:16px;
+  font-size:14px;
 }
 
-/* ABAS (um pouco menores) */
+/* ABAS (menores) */
 .tabs{
-  margin-top:8px;
+  margin-top:6px;
   display:flex;
-  gap:8px;
+  gap:6px;
 }
 
 .tabs button{
   flex:1;
-  padding:10px 8px;
+  padding:8px 6px;
   border:none;
-  border-radius:14px;
-  background: rgba(255,255,255,0.14);
+  border-radius:12px;
+  background: rgba(255,255,255,0.12);
   color: rgba(255,255,255,0.95);
   font-weight:900;
-  font-size:13px;
+  font-size:12px;
 }
 
 .tabs button.active{
@@ -173,16 +166,10 @@ body{
   box-shadow: 0 6px 16px rgba(0,0,0,0.18);
 }
 
-/* MAIN */
+/* MAIN: NÃO prender scroll aqui */
 .app-main{
-  flex: 1;
-  overflow: auto; /* se precisar rolar, rola o conteúdo, não “mata” a tela toda */
-  padding: 12px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
-}
-
-.tab-content{
-  height: auto;
+  padding: 10px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
 }
 
 /* CARDS */
@@ -190,37 +177,35 @@ body{
   background:var(--card);
   border:1px solid var(--line);
   border-radius:var(--radius);
-  padding:14px;
-  margin-bottom:12px;
+  padding:12px;
+  margin-bottom:10px;
   box-shadow: var(--shadow);
 }
 
-h2, h3{ margin:0 0 10px 0; }
-h2{ font-size:18px; }
-h3{ font-size:15px; color: var(--muted); }
+h2{ margin:0 0 8px 0; font-size:16px; }
+h3{ margin:0 0 8px 0; font-size:13px; color: var(--muted); }
 
 /* Layout de campos */
 .grid{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px;
+  gap:8px;
 }
-
 .span-2{ grid-column: 1 / -1; }
 
 /* Inputs */
 input, select, textarea{
   width:100%;
-  padding:12px;
+  padding:10px;
   border:1px solid var(--line);
-  border-radius:14px;
-  font-size:16px;
+  border-radius:12px;
+  font-size:14px;
   background:#fff;
   color:var(--text);
 }
 
 textarea{
-  min-height:90px;
+  min-height:76px;
   resize:vertical;
 }
 
@@ -230,16 +215,16 @@ input:focus, select:focus, textarea:focus{
   box-shadow: 0 0 0 4px rgba(10,102,194,0.12);
 }
 
-/* Botões padrão */
+/* Botões menores */
 button{
   width:100%;
-  padding:12px;
+  padding:10px;
   border:none;
-  border-radius:14px;
+  border-radius:12px;
   background: linear-gradient(180deg, var(--blue), #095bb0);
   color:#fff;
   font-weight:900;
-  font-size:16px;
+  font-size:14px;
 }
 
 button:active{ transform: translateY(1px); }
@@ -254,24 +239,17 @@ button.primary{
 }
 
 /* Botões Operação */
-.btn-green{
-  background: linear-gradient(180deg, #16a34a, #15803d);
-}
-
-.btn-red{
-  background: linear-gradient(180deg, #ef4444, #b91c1c);
-}
+.btn-green{ background: linear-gradient(180deg, #16a34a, #15803d); }
+.btn-red{ background: linear-gradient(180deg, #ef4444, #b91c1c); }
 
 .row{
   display:flex;
-  gap:10px;
+  gap:8px;
 }
-
 .row.space{
   align-items:center;
   justify-content:space-between;
 }
-
 .row .ghost{ width:auto; }
 
 /* Listas */
@@ -280,30 +258,28 @@ button.primary{
   padding:0;
   margin:0;
 }
-
 .list li{
-  padding:10px 0;
+  padding:9px 0;
   border-bottom:1px solid var(--line);
 }
-
 .list li:last-child{ border-bottom:none; }
 
 .small-btn{
   width:auto;
-  padding:8px 10px;
-  font-size:13px;
-  border-radius:12px;
+  padding:7px 9px;
+  font-size:12px;
+  border-radius:10px;
   background: var(--ghost);
   color: var(--navy);
 }
 
-/* Operação: Timer */
+/* Operação: Timer (compacto) */
 .op-timer{
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 900;
   text-align: center;
-  padding: 14px 10px;
-  border-radius: 16px;
+  padding: 12px 10px;
+  border-radius: 14px;
   border: 1px solid var(--line);
   background: #fff;
   color: var(--text);
@@ -311,23 +287,25 @@ button.primary{
 }
 
 .op-hint{
-  margin-top: 8px;
+  margin-top: 6px;
   text-align: center;
   font-weight: 900;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .op-msg{
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 14px;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 12px;
   border: 1px solid var(--line);
   background: #fff;
   color: var(--text);
   font-weight: 900;
   text-align: center;
+  font-size: 13px;
 }
+
 
 
 
