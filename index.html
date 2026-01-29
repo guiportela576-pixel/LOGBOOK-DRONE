@@ -41,15 +41,18 @@
         </div>
       </div>
 
-      <!-- Mantém o summary para compatibilidade (fica escondido) -->
       <p id="summary" class="summary" style="display:none;"></p>
     </div>
 
     <!-- DADOS FIXOS DO OPERADOR -->
     <div id="pilotBox" class="pilot-box">
-      <input type="text" id="pilotName" placeholder="Nome completo" />
+      <!-- (AJUSTE) Nome em linha inteira -->
+      <input type="text" id="pilotName" class="span-2" placeholder="Nome completo" />
+
+      <!-- (AJUSTE) CPF desce e fica ao lado do SARPAS -->
       <input type="text" id="pilotCPF" placeholder="CPF" />
       <input type="text" id="pilotSarpas" placeholder="SARPAS do operador" />
+
       <button type="button" onclick="savePilot()">Salvar dados</button>
     </div>
 
@@ -70,22 +73,17 @@
         <h2>Novo Voo</h2>
 
         <div class="grid">
-          <!-- DATA em linha inteira -->
           <input type="date" id="date" class="span-2" />
 
-          <!-- Duração e Nº de voos lado a lado -->
           <input type="number" id="duration" placeholder="Duração total (min)" min="1" />
           <input type="number" id="flightsCount" placeholder="Nº de voos" min="1" />
 
-          <!-- Drone: salvo (select) ao lado do novo -->
           <select id="drone"></select>
           <input type="text" id="newDrone" placeholder="Novo drone" />
 
-          <!-- Local: salvo (select) ao lado do novo -->
           <select id="location"></select>
           <input type="text" id="newLocation" placeholder="Novo local" />
 
-          <!-- SARPAS: salvo (select) ao lado do novo -->
           <select id="sarpas"></select>
           <input type="text" id="newSarpas" placeholder="Novo nº SARPAS" />
         </div>
@@ -102,10 +100,7 @@
         <h2>Operação</h2>
 
         <div class="grid">
-          <!-- Drone (igual ao molde que você pediu) -->
           <select id="opDrone" class="span-2"></select>
-
-          <!-- SARPAS (mesmo molde do Drone) -->
           <select id="opSarpas" class="span-2"></select>
         </div>
 
@@ -199,7 +194,6 @@
 
   </main>
 
-  <!-- jsPDF primeiro, depois seu app -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="app.js?v=3"></script>
 </body>
