@@ -55,6 +55,34 @@ function getFlightsCount(f) {
 }
 
 /* =======================
+   TOGGLE DADOS DO OPERADOR
+======================= */
+function togglePilotBox(forceOpen = null) {
+  const box = document.getElementById("pilotBox");
+  if (!box) return;
+
+  const shouldOpen = (forceOpen === null) ? !box.classList.contains("open") : !!forceOpen;
+
+  if (shouldOpen) box.classList.add("open");
+  else box.classList.remove("open");
+
+  updatePilotToggleLabel();
+}
+
+function updatePilotToggleLabel() {
+  const btn = document.getElementById("pilotToggle");
+  if (!btn) return;
+
+  const box = document.getElementById("pilotBox");
+  const isOpen = box?.classList.contains("open");
+
+  const name = (pilot?.name || "").trim();
+  const shortName = name ? ` (${name})` : "";
+
+  btn.textContent = isOpen ? `✖ Fechar dados do operador${shortName}` : `👤 Dados do operador${shortName}`;
+}
+
+/* =======================
    OPERADOR
 ======================= */
 function savePilot() {
@@ -62,13 +90,21 @@ function savePilot() {
   pilot.cpf = document.getElementById("pilotCPF").value;
   pilot.sarpas = document.getElementById("pilotSarpas").value;
   saveAll();
+  updatePilotToggleLabel();
+  togglePilotBox(false); // fecha depois de salvar (deixa o topo pequeno)
   alert("Dados do operador salvos");
 }
 
 function loadPilot() {
-  document.getElementById("pilotName").value = pilot.name || "";
-  document.getElementById("pilotCPF").value = pilot.cpf || "";
-  document.getElementById("pilotSarpas").value = pilot.sarpas || "";
+  const n = document.getElementById("pilotName");
+  const c = document.getElementById("pilotCPF");
+  const s = document.getElementById("pilotSarpas");
+
+  if (n) n.value = pilot.name || "";
+  if (c) c.value = pilot.cpf || "";
+  if (s) s.value = pilot.sarpas || "";
+
+  updatePilotToggleLabel();
 }
 
 /* =======================
@@ -197,9 +233,7 @@ function showOpMessage(text) {
   if (!el) return;
   el.style.display = "block";
   el.textContent = text;
-  setTimeout(() => {
-    el.style.display = "none";
-  }, 3500);
+  setTimeout(() => { el.style.display = "none"; }, 3500);
 }
 
 function startOperation() {
@@ -208,7 +242,6 @@ function startOperation() {
     alert("Selecione um drone para iniciar o voo");
     return;
   }
-
   if (opInterval) return;
 
   opStartMs = Date.now();
@@ -313,9 +346,6 @@ function renderSummary() {
     }
   });
 
-  const summary = document.getElementById("summary");
-  if (summary) summary.innerText = `Total: ${toHM(totalMinutes)} | Nº de Voos: ${totalFlights}`;
-
   const elTotalHours = document.getElementById("dashTotalHours");
   const elTotalFlights = document.getElementById("dashTotalFlights");
   const elThisMonth = document.getElementById("dashThisMonth");
@@ -327,38 +357,34 @@ function renderSummary() {
   const elLast = document.getElementById("dashLastFlight");
   if (elLast) {
     let last = null;
-
     flights.forEach(f => {
       if (!f || !f.date) return;
       if (!last || String(f.date) > String(last.date)) last = f;
     });
 
-    if (!last) {
-      elLast.textContent = "—";
-    } else {
+    if (!last) elLast.textContent = "—";
+    else {
       const d = last.date || "";
       const drone = last.drone || "—";
       const mins = Number(last.duration) || 0;
       const flts = getFlightsCount(last);
-
       const h = Math.floor(mins / 60);
       const mm = mins % 60;
-
       elLast.textContent = `${d} • ${drone} • ${h}h ${mm}min • ${flts} voo(s)`;
     }
   }
 }
 
 /* =======================
-   RESTANTE (relatórios/cadastros)
+   LISTAS / FILTROS / RENDER
 ======================= */
 function renderHoursByDrone() {
   const ul = document.getElementById("hoursByDrone");
   if (!ul) return;
 
   ul.innerHTML = "";
-
   const totals = {};
+
   flights.forEach(f => {
     const d = f?.drone || "-";
     totals[d] = (totals[d] || 0) + (Number(f.duration) || 0);
@@ -419,7 +445,7 @@ function renderFlights() {
   const fLocation = document.getElementById("filterLocation")?.value || "";
   const fSarpas = document.getElementById("filterSarpas")?.value || "";
 
-  let filtered = flights.filter(f =>
+  const filtered = flights.filter(f =>
     (!fDate || f.date === fDate) &&
     (!fDrone || f.drone === fDrone) &&
     (!fLocation || (f.location || "") === fLocation) &&
@@ -527,7 +553,6 @@ function renderMonthlySummary() {
     if (!f.date) return;
     const [year, month] = f.date.split("-");
     const key = `${month}/${year}`;
-
     if (!byMonth[key]) byMonth[key] = { minutes: 0, flights: 0 };
     byMonth[key].minutes += Number(f.duration) || 0;
     byMonth[key].flights += getFlightsCount(f);
@@ -621,6 +646,9 @@ function render() {
 
   renderOperationDroneSelect();
   renderOperationSarpasSelect();
+
+  // mantém recolhido por padrão (topo pequeno)
+  togglePilotBox(false);
 }
 
 /* INIT */
