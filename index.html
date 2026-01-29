@@ -44,15 +44,16 @@
       <p id="summary" class="summary" style="display:none;"></p>
     </div>
 
-    <!-- DADOS FIXOS DO OPERADOR -->
-    <div id="pilotBox" class="pilot-box">
-      <!-- (AJUSTE) Nome em linha inteira -->
-      <input type="text" id="pilotName" class="span-2" placeholder="Nome completo" />
+    <!-- (NOVO) BOTÃO RECOLHER/EXPANDIR DADOS DO OPERADOR -->
+    <button type="button" class="pilot-toggle" id="pilotToggle" onclick="togglePilotBox()">
+      👤 Dados do operador
+    </button>
 
-      <!-- (AJUSTE) CPF desce e fica ao lado do SARPAS -->
+    <!-- DADOS FIXOS DO OPERADOR (recolhido por padrão) -->
+    <div id="pilotBox" class="pilot-box">
+      <input type="text" id="pilotName" class="span-2" placeholder="Nome completo" />
       <input type="text" id="pilotCPF" placeholder="CPF" />
       <input type="text" id="pilotSarpas" placeholder="SARPAS do operador" />
-
       <button type="button" onclick="savePilot()">Salvar dados</button>
     </div>
 
@@ -110,7 +111,7 @@
 
         <div id="opRunningBox" style="display:none; margin-top:12px;">
           <div id="opTimer" class="op-timer">00:00:00</div>
-          <div id="opHint" class="op-hint">Cronômetro em andamento…</div>
+          <div class="op-hint">Cronômetro em andamento…</div>
           <div style="margin-top:10px;">
             <button type="button" class="btn-red" onclick="endOperation()">Encerrar Voo</button>
           </div>
@@ -122,7 +123,6 @@
 
     <!-- ================= ABA RELATÓRIOS ================= -->
     <div id="tab-reports-content" class="tab-content" style="display:none;">
-
       <section class="card">
         <h2>Horas voadas por Drone</h2>
         <ul id="hoursByDrone" class="list"></ul>
@@ -173,7 +173,6 @@
           <ul id="flightList" class="list"></ul>
         </div>
       </section>
-
     </div>
 
     <!-- ================= ABA CADASTROS ================= -->
@@ -198,6 +197,7 @@
   <script src="app.js?v=3"></script>
 </body>
 </html>
+
 
 
 
