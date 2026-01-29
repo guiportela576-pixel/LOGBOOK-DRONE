@@ -1,179 +1,324 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <title>🚁 Logbook Drone</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+:root{
+  /* Paleta “institucional” (inspirada) */
+  --bg:#f3f6fb;
+  --card:#ffffff;
+  --text:#0b1220;
+  --muted:#52617a;
+  --line:#dbe3f0;
 
-  <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css?v=3" />
+  --navy:#0b2a5b;     /* azul marinho */
+  --blue:#0a66c2;     /* azul principal */
+  --blue2:#0a84ff;    /* azul iOS */
+  --yellow:#ffcc33;   /* destaque */
 
-  <!-- iOS (opcional) -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-</head>
+  --ghost:#e9edf6;
+  --danger:#d92d20;
 
-<body>
-  <header class="app-header">
-    <div class="header-top">
-      <h1>🚁 Logbook Drone</h1>
+  --shadow: 0 8px 20px rgba(11,42,91,0.10);
+  --radius:16px;
+}
 
-      <!-- RESUMO EM CARDS -->
-      <div class="dashboard">
-        <div class="dash-card">
-          <div class="dash-label">Total de horas</div>
-          <div id="dashTotalHours" class="dash-value">0h 0min</div>
-        </div>
+*{ box-sizing:border-box; }
 
-        <div class="dash-card">
-          <div class="dash-label">Nº de voos</div>
-          <div id="dashTotalFlights" class="dash-value">0</div>
-        </div>
+html, body{
+  height:100%;
+  background:var(--bg);
+}
 
-        <div class="dash-card">
-          <div class="dash-label">Mês atual</div>
-          <div id="dashThisMonth" class="dash-subvalue">0h 0min • 0 voos</div>
-        </div>
+body{
+  margin:0;
+  color:var(--text);
+  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
 
-        <div class="dash-card">
-          <div class="dash-label">Último voo</div>
-          <div id="dashLastFlight" class="dash-subvalue">—</div>
-        </div>
-      </div>
+  /* APP FULLSCREEN */
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
 
-      <!-- Mantém o summary para compatibilidade (fica escondido) -->
-      <p id="summary" class="summary" style="display:none;"></p>
-    </div>
+/* HEADER (ROLANDO JUNTO) */
+.app-header{
+  position: relative;
+  top: auto;
+  z-index: 1;
+  background: linear-gradient(180deg, var(--navy), #0b2a5b 65%, #0a2a58);
+  color:#fff;
+  border-bottom:1px solid rgba(255,255,255,0.12);
+  padding: calc(12px + env(safe-area-inset-top)) 12px 12px 12px;
+}
 
-    <!-- DADOS FIXOS DO OPERADOR -->
-    <div id="pilotBox" class="pilot-box">
-      <input type="text" id="pilotName" placeholder="Nome completo" />
-      <input type="text" id="pilotCPF" placeholder="CPF" />
-      <input type="text" id="pilotSarpas" placeholder="SARPAS do operador" />
-      <button type="button" onclick="savePilot()">Salvar dados</button>
-    </div>
+/* Topo */
+.header-top{
+  text-align:center;
+}
 
-    <!-- MENU DE ABAS -->
-    <div class="tabs">
-      <button type="button" onclick="showTab('logbook')" id="tab-logbook" class="active">📘 Logbook</button>
-      <button type="button" onclick="showTab('reports')" id="tab-reports">📊 Relatórios</button>
-      <button type="button" onclick="showTab('settings')" id="tab-settings">⚙️ Cadastros</button>
-    </div>
-  </header>
+.header-top h1{
+  margin:0;
+  font-size:20px;
+  line-height:1.2;
+  letter-spacing:0.2px;
+}
 
-  <main class="app-main">
+.summary{
+  margin:8px 0 0 0;
+  font-weight:800;
+  font-size:14px;
+  color: rgba(255,255,255,0.85);
+}
 
-    <!-- ================= ABA LOGBOOK ================= -->
-    <div id="tab-logbook-content" class="tab-content">
-      <section class="card">
-        <h2>Novo Voo</h2>
+/* DADOS DO PILOTO */
+.pilot-box{
+  margin-top:12px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
 
-        <div class="grid">
-          <!-- DATA em linha inteira -->
-          <input type="date" id="date" class="span-2" />
+.pilot-box input{
+  width:100%;
+  padding:12px;
+  border:1px solid rgba(255,255,255,0.25);
+  border-radius:14px;
+  font-size:16px;
+  background: rgba(255,255,255,0.10);
+  color:#fff;
+  outline:none;
+}
 
-          <!-- Duração e Nº de voos lado a lado -->
-          <input type="number" id="duration" placeholder="Duração total (min)" min="1" />
-          <input type="number" id="flightsCount" placeholder="Nº de voos" min="1" />
+.pilot-box input::placeholder{
+  color: rgba(255,255,255,0.75);
+}
 
-          <!-- Drone: salvo (select) ao lado do novo -->
-          <select id="drone"></select>
-          <input type="text" id="newDrone" placeholder="Novo drone" />
+.pilot-box button{
+  grid-column:1 / -1;
+  padding:12px;
+  border:none;
+  border-radius:14px;
+  background: linear-gradient(180deg, var(--yellow), #ffb703);
+  color:#1b1b1b;
+  font-weight:900;
+  font-size:16px;
+}
 
-          <!-- Local: salvo (select) ao lado do novo -->
-          <select id="location"></select>
-          <input type="text" id="newLocation" placeholder="Novo local" />
+/* ABAS */
+.tabs{
+  margin-top:12px;
+  display:flex;
+  gap:8px;
+}
 
-          <!-- SARPAS: salvo (select) ao lado do novo -->
-          <select id="sarpas"></select>
-          <input type="text" id="newSarpas" placeholder="Novo nº SARPAS" />
-        </div>
+.tabs button{
+  flex:1;
+  padding:12px 10px;
+  border:none;
+  border-radius:14px;
+  background: rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.95);
+  font-weight:900;
+  font-size:14px;
+}
 
-        <textarea id="notes" placeholder="Observações"></textarea>
+.tabs button.active{
+  background:#fff;
+  color: var(--navy);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+}
 
-        <button type="button" class="primary" onclick="addFlight()">Salvar Voo</button>
-      </section>
-    </div>
+/* MAIN */
+.app-main{
+  flex: 1;
+  overflow: visible;
+  padding: 12px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
 
-    <!-- ================= ABA RELATÓRIOS ================= -->
-    <div id="tab-reports-content" class="tab-content" style="display:none;">
+.tab-content{
+  height: auto;
+  overflow: visible;
+}
 
-      <section class="card">
-        <h2>Horas voadas por Drone</h2>
-        <ul id="hoursByDrone" class="list"></ul>
-      </section>
+/* CARDS */
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow: var(--shadow);
+}
 
-      <section class="card">
-        <button type="button" class="ghost" onclick="toggleMonthly()" id="toggleMonthlyBtn">
-          📅 Ver relatório mensal
-        </button>
+h2, h3{
+  margin:0 0 10px 0;
+}
 
-        <div id="monthlyBox" style="display:none; margin-top:10px;">
-          <h2>📅 Relatório Mensal</h2>
-          <ul id="monthlySummary" class="list"></ul>
-        </div>
-      </section>
+h2{
+  font-size:18px;
+}
 
-      <section class="card">
-        <h2>Exportação</h2>
-        <div class="row">
-          <button type="button" onclick="exportCSV()">📁 Exportar para Excel</button>
-          <button type="button" onclick="exportPDF()">📄 Exportar PDF</button>
-        </div>
-      </section>
+h3{
+  font-size:15px;
+  color: var(--muted);
+}
 
-      <section class="card">
-        <h3>🔎 Filtrar Voos</h3>
+/* Layout de campos */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
 
-        <div class="grid">
-          <input type="date" id="filterDate">
-          <select id="filterDrone"></select>
-          <select id="filterLocation"></select>
-          <select id="filterSarpas"></select>
-        </div>
+/* campo ocupando a linha inteira */
+.span-2{
+  grid-column: 1 / -1;
+}
 
-        <div class="row">
-          <button type="button" onclick="renderFlights()">Aplicar Filtro</button>
-          <button type="button" class="ghost" onclick="clearFilters()">Limpar</button>
-        </div>
-      </section>
+/* Inputs */
+input, select, textarea{
+  width:100%;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  font-size:16px;
+  background:#fff;
+  color:var(--text);
+}
 
-      <section class="card">
-        <div class="row space">
-          <h2>Histórico de Voos</h2>
-          <button type="button" class="ghost" onclick="toggleHistory()">📂 Mostrar / Ocultar</button>
-        </div>
+textarea{
+  min-height:90px;
+  resize:vertical;
+}
 
-        <div id="historyContainer" style="display:none; margin-top:10px;">
-          <ul id="flightList" class="list"></ul>
-        </div>
-      </section>
+input:focus, select:focus, textarea:focus{
+  outline:none;
+  border-color: rgba(10,102,194,0.65);
+  box-shadow: 0 0 0 4px rgba(10,102,194,0.12);
+}
 
-    </div>
+/* Botões */
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:14px;
+  background: linear-gradient(180deg, var(--blue), #095bb0);
+  color:#fff;
+  font-weight:900;
+  font-size:16px;
+}
 
-    <!-- ================= ABA CADASTROS ================= -->
-    <div id="tab-settings-content" class="tab-content" style="display:none;">
-      <section class="card">
-        <h2>Gerenciar Cadastros</h2>
+button:active{
+  transform: translateY(1px);
+}
 
-        <h3>Drones</h3>
-        <ul id="droneList" class="list"></ul>
+button.ghost{
+  background: var(--ghost);
+  color: var(--navy);
+}
 
-        <h3>Locais</h3>
-        <ul id="locationList" class="list"></ul>
+button.primary{
+  background: linear-gradient(180deg, var(--blue2), #0a6fe0);
+}
 
-        <h3>SARPAS</h3>
-        <ul id="sarpasList" class="list"></ul>
-      </section>
-    </div>
+.row{
+  display:flex;
+  gap:10px;
+}
 
-  </main>
+.row.space{
+  align-items:center;
+  justify-content:space-between;
+}
 
-  <!-- jsPDF primeiro, depois seu app -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="app.js?v=3"></script>
-</body>
-</html>
+.row .ghost{
+  width:auto;
+}
+
+/* Listas */
+.list{
+  list-style:none;
+  padding:0;
+  margin:0;
+}
+
+.list li{
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.list li:last-child{
+  border-bottom:none;
+}
+
+/* Pequenos botões */
+.small-btn{
+  width:auto;
+  padding:8px 10px;
+  font-size:13px;
+  border-radius:12px;
+  background: var(--ghost);
+  color: var(--navy);
+}
+
+/* ===== DASHBOARD (TOPO) — AJUSTADO ===== */
+.dashboard{
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* horas e nº voos lado a lado */
+  gap: 10px;
+  margin-top: 10px;
+
+  /* centraliza e ocupa melhor a tela */
+  width: 100%;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dash-card{
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 14px;
+  padding: 14px 12px; /* maior */
+  text-align: center;
+}
+
+/* deixa os 2 primeiros (horas e voos) ainda mais “fortes” */
+.dashboard .dash-card:nth-child(1),
+.dashboard .dash-card:nth-child(2){
+  padding: 16px 12px;
+}
+
+/* mês atual e último voo ocupam a linha inteira */
+.dashboard .dash-card:nth-child(3),
+.dashboard .dash-card:nth-child(4){
+  grid-column: 1 / -1;
+}
+
+.dash-label{
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.88);
+  margin-bottom: 8px;
+}
+
+.dash-value{
+  font-size: 22px;      /* maior */
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.dash-subvalue{
+  font-size: 15px;      /* maior */
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.2;
+}
+
+/* em telas muito estreitas continua bom */
+@media (max-width: 360px){
+  .dash-value{ font-size: 20px; }
+  .dash-subvalue{ font-size: 14px; }
+}
 
 
 
