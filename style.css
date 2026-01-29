@@ -27,8 +27,6 @@ body{
   margin:0;
   color:var(--text);
   font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-
-  /* IMPORTANTE: deixa a página rolar inteira (header + conteúdo) */
   overflow-y: auto;
 }
 
@@ -39,7 +37,6 @@ body{
   background: linear-gradient(180deg, var(--navy), #0b2a5b 65%, #0a2a58);
   color:#fff;
   border-bottom:1px solid rgba(255,255,255,0.12);
-
   padding: calc(6px + env(safe-area-inset-top)) 8px 6px 8px;
 }
 
@@ -51,7 +48,7 @@ body{
   line-height:1.15;
 }
 
-/* DASHBOARD 2x2 (SEM cards gigantes) */
+/* DASHBOARD 2x2 */
 .dashboard{
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -96,7 +93,7 @@ body{
   text-overflow: ellipsis;
 }
 
-/* BOTÃO TOGGLE DO OPERADOR (menor) */
+/* BOTÃO TOGGLE DO OPERADOR */
 .pilot-toggle{
   margin-top: 6px;
   width: 100%;
@@ -109,7 +106,7 @@ body{
   font-size: 13px;
 }
 
-/* DADOS DO OPERADOR (recolhível) */
+/* DADOS DO OPERADOR */
 .pilot-box{
   margin-top:6px;
   display:none;
@@ -123,10 +120,12 @@ body{
   padding:9px;
   border:1px solid rgba(255,255,255,0.22);
   border-radius:12px;
-  font-size:14px;
   background: rgba(255,255,255,0.10);
   color:#fff;
   outline:none;
+
+  /* IMPORTANTE: evita zoom no iPhone */
+  font-size:16px;
 }
 
 .pilot-box input::placeholder{ color: rgba(255,255,255,0.75); }
@@ -142,7 +141,7 @@ body{
   font-size:14px;
 }
 
-/* ABAS (menores) */
+/* ABAS */
 .tabs{
   margin-top:6px;
   display:flex;
@@ -166,7 +165,7 @@ body{
   box-shadow: 0 6px 16px rgba(0,0,0,0.18);
 }
 
-/* MAIN: NÃO prender scroll aqui */
+/* MAIN */
 .app-main{
   padding: 10px;
   padding-bottom: calc(10px + env(safe-area-inset-bottom));
@@ -193,15 +192,17 @@ h3{ margin:0 0 8px 0; font-size:13px; color: var(--muted); }
 }
 .span-2{ grid-column: 1 / -1; }
 
-/* Inputs */
+/* Inputs do app (IMPORTANTE: 16px para não dar zoom no iPhone) */
 input, select, textarea{
   width:100%;
   padding:10px;
   border:1px solid var(--line);
   border-radius:12px;
-  font-size:14px;
   background:#fff;
   color:var(--text);
+
+  /* FIX DO ZOOM iOS */
+  font-size:16px;
 }
 
 textarea{
@@ -273,7 +274,7 @@ button.primary{
   color: var(--navy);
 }
 
-/* Operação: Timer (compacto) */
+/* Operação: Timer */
 .op-timer{
   font-size: 32px;
   font-weight: 900;
