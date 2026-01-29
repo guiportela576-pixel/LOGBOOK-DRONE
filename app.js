@@ -89,7 +89,6 @@ function addFlight() {
 
   const notes = document.getElementById("notes").value;
 
-  // obrigatório: data, duração, drone
   if (!date || !duration || !drone) {
     alert("Preencha data, duração e drone");
     return;
@@ -174,7 +173,7 @@ function renderOperationSarpasSelect() {
     opt.value = "";
     opt.textContent = "Nenhum SARPAS cadastrado (opcional)";
     sel.appendChild(opt);
-    sel.disabled = true; // opcional, mas evita selecionar “vazio” achando que tem lista
+    sel.disabled = true;
     return;
   }
 
@@ -210,7 +209,7 @@ function startOperation() {
     return;
   }
 
-  if (opInterval) return; // já rodando
+  if (opInterval) return;
 
   opStartMs = Date.now();
 
@@ -244,10 +243,7 @@ function endOperation() {
     return;
   }
 
-  // SARPAS selecionado (opcional)
   const sarpasSelected = document.getElementById("opSarpas")?.value || "";
-
-  // minutos: arredonda pra cima para não salvar 0 min
   const minutes = Math.max(1, Math.ceil(elapsedSec / 60));
 
   flights.push({
@@ -346,15 +342,15 @@ function renderSummary() {
       const flts = getFlightsCount(last);
 
       const h = Math.floor(mins / 60);
-      const m = mins % 60;
+      const mm = mins % 60;
 
-      elLast.textContent = `${d} • ${drone} • ${h}h ${m}min • ${flts} voo(s)`;
+      elLast.textContent = `${d} • ${drone} • ${h}h ${mm}min • ${flts} voo(s)`;
     }
   }
 }
 
 /* =======================
-   HORAS POR DRONE
+   RESTANTE (relatórios/cadastros)
 ======================= */
 function renderHoursByDrone() {
   const ul = document.getElementById("hoursByDrone");
@@ -389,15 +385,11 @@ function deleteDroneHistory(droneName) {
   render();
 }
 
-/* =======================
-   GERENCIAR CADASTROS
-======================= */
 function renderManage(id, list, type) {
   const ul = document.getElementById(id);
   if (!ul) return;
 
   ul.innerHTML = "";
-
   list.forEach((item, i) => {
     const li = document.createElement("li");
     li.innerHTML = `
@@ -416,9 +408,6 @@ function deleteItem(type, index) {
   render();
 }
 
-/* =======================
-   HISTÓRICO + FILTROS
-======================= */
 function renderFlights() {
   const list = document.getElementById("flightList");
   if (!list) return;
@@ -472,9 +461,6 @@ function clearForm() {
   document.getElementById("flightsCount").value = "";
 }
 
-/* =======================
-   EXPORTAR
-======================= */
 function exportCSV() {
   let csv = "Operador,CPF,SARPAS Operador\n";
   csv += `${pilot.name},${pilot.cpf},${pilot.sarpas}\n\n`;
@@ -535,7 +521,6 @@ function renderMonthlySummary() {
   if (!ul) return;
 
   ul.innerHTML = "";
-
   const byMonth = {};
 
   flights.forEach(f => {
@@ -544,7 +529,6 @@ function renderMonthlySummary() {
     const key = `${month}/${year}`;
 
     if (!byMonth[key]) byMonth[key] = { minutes: 0, flights: 0 };
-
     byMonth[key].minutes += Number(f.duration) || 0;
     byMonth[key].flights += getFlightsCount(f);
   });
@@ -558,7 +542,6 @@ function renderMonthlySummary() {
     .forEach(key => {
       const h = Math.floor(byMonth[key].minutes / 60);
       const m = byMonth[key].minutes % 60;
-
       const li = document.createElement("li");
       li.textContent = `${key} → ${h}h ${m}min | ${byMonth[key].flights} voos`;
       ul.appendChild(li);
@@ -580,7 +563,6 @@ function toggleMonthly() {
 }
 
 function exportPDF() {
-  // (mantive igual ao seu — não mexi aqui)
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p", "mm", "a4");
   doc.text("PDF gerado pelo Logbook Drone", 10, 10);
@@ -606,9 +588,6 @@ function showTab(tab) {
   if (button) button.classList.add("active");
 }
 
-/* =======================
-   RENDER GERAL
-======================= */
 function fillSelect(el, list) {
   if (!el) return;
   el.innerHTML = "<option value=''>Selecione</option>";
@@ -640,7 +619,6 @@ function render() {
 
   renderFlights();
 
-  // Operação
   renderOperationDroneSelect();
   renderOperationSarpasSelect();
 }
