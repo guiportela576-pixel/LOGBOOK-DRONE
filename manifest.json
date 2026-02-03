@@ -3,8 +3,8 @@
   "short_name": "Logbook",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#050a10",
+  "theme_color": "#06131f",
   "icons": [
     {
       "src": "icon.png",
