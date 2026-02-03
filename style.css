@@ -526,3 +526,59 @@ button.primary{ background: linear-gradient(180deg, var(--blue2), #0a6fe0); }
     0 0 0 1px rgba(0, 229, 255, 0.25),
     0 0 18px rgba(0, 229, 255, 0.18);
 }
+
+
+/* =======================
+   HEADER (topo) - estilo cockpit/Garmin
+   (somente visual: cores + acabamento)
+======================= */
+.app-header{
+  background: linear-gradient(180deg, #0b1220, #070b12 65%, #05070c);
+  border-bottom: 1px solid rgba(0, 229, 255, 0.18);
+}
+
+.dash-card{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(0, 229, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+}
+
+.dash-label{
+  color: rgba(230, 245, 255, 0.80);
+  letter-spacing: 0.2px;
+}
+
+.dash-value,
+.dash-subvalue{
+  color: rgba(230, 245, 255, 0.95);
+}
+
+.pilot-toggle{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(0, 229, 255, 0.12);
+  color: rgba(230, 245, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+}
+
+.pilot-box input{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(0, 229, 255, 0.12);
+  color: rgba(230, 245, 255, 0.95);
+}
+
+.pilot-box input::placeholder{
+  color: rgba(230, 245, 255, 0.65);
+}
+
+.pilot-box button{
+  background: rgba(0, 229, 255, 0.16);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  color: #00e5ff;
+  box-shadow:
+    0 0 0 1px rgba(0, 229, 255, 0.18),
+    0 0 18px rgba(0, 229, 255, 0.10);
+}
+
+.pilot-box button:active{
+  transform: translateY(1px);
+}
