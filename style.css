@@ -51,8 +51,7 @@ a{ color: inherit; }
 
 /* ===== Header ===== */
 .app-header{
-  position: sticky;
-  top:0;
+  position: relative;
   z-index: 10;
   color: #fff;
   padding: calc(8px + env(safe-area-inset-top)) 10px 10px 10px;
@@ -184,10 +183,12 @@ a{ color: inherit; }
   margin-top:10px;
   display:flex;
   gap:8px;
+  flex-wrap: wrap;
 }
 
 .tabs button{
-  flex:1;
+  flex: 1 1 calc(33.333% - 8px);
+  min-width: 130px;
   padding:10px 8px;
   border:1px solid rgba(255,255,255,0.10);
   border-radius:14px;
@@ -502,4 +503,9 @@ button.primary{
     border: 2px solid rgba(0,0,0,0.35);
   }
   ::-webkit-scrollbar-track{ background: rgba(0,0,0,0.25); }
+}
+
+
+@media (max-width: 420px){
+  .tabs button{ flex: 1 1 calc(50% - 8px); min-width: 0; }
 }
