@@ -1459,6 +1459,7 @@ function fillSelect(el, list) {
 }
 
 function render() {
+  initMetarUI();
   migrateFlightIds();
 
   if (defaultDrone && !drones.includes(defaultDrone)) drones.push(defaultDrone);
@@ -1500,6 +1501,502 @@ function render() {
 
   saveAll();
 }
+
+
+/* =======================
+   METAR (aeroporto salvo + decodificação + avaliação drone)
+======================= */
+
+let metarStations = JSON.parse(localStorage.getItem("metarStations")) || [];
+let metarDefault = localStorage.getItem("metarDefault") || "";
+
+function normStation(code){
+  const c = normalizeStr(code).toUpperCase();
+  // aceita ICAO 4 letras ou IATA 3 letras (vamos tentar buscar como ICAO; para IATA, o usuário pode salvar ICAO)
+  if (!/^[A-Z0-9]{3,4}$/.test(c)) return "";
+  return c;
+}
+
+function saveMetarStorage(){
+  localStorage.setItem("metarStations", JSON.stringify(metarStations));
+  localStorage.setItem("metarDefault", String(metarDefault || ""));
+}
+
+function setMetarMsg(text, isError=false){
+  const el = document.getElementById("metarMsg");
+  if (!el) return;
+  el.style.display = "block";
+  el.textContent = text;
+  el.style.borderColor = isError ? "rgba(239,68,68,0.45)" : "rgba(51,183,255,0.25)";
+}
+
+function clearMetarMsg(){
+  const el = document.getElementById("metarMsg");
+  if (!el) return;
+  el.style.display = "none";
+  el.textContent = "";
+}
+
+function renderMetarStations(){
+  const sel = document.getElementById("metarSaved");
+  if (!sel) return;
+
+  sel.innerHTML = "";
+
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = "Aeroportos salvos (selecione)";
+  sel.appendChild(opt0);
+
+  metarStations.forEach(st => {
+    const opt = document.createElement("option");
+    opt.value = st;
+    opt.textContent = st + (st === metarDefault ? " ⭐" : "");
+    sel.appendChild(opt);
+  });
+
+  // se existe padrão, seleciona
+  if (metarDefault && metarStations.includes(metarDefault)) sel.value = metarDefault;
+
+  // bind change uma vez
+  if (!sel.dataset._bound){
+    sel.addEventListener("change", () => {
+      const v = normStation(sel.value);
+      if (!v) return;
+      const input = document.getElementById("metarInput");
+      if (input) input.value = v;
+    });
+    sel.dataset._bound = "1";
+  }
+}
+
+function currentMetarStation(){
+  const input = document.getElementById("metarInput");
+  const sel = document.getElementById("metarSaved");
+  const fromInput = normStation(input?.value || "");
+  const fromSelect = normStation(sel?.value || "");
+  return fromInput || fromSelect || normStation(metarDefault) || "";
+}
+
+function saveMetarStation(){
+  clearMetarMsg();
+  const st = currentMetarStation();
+  if (!st){
+    setMetarMsg("Digite um ICAO (ex: SBGR) ou selecione um salvo.", true);
+    return;
+  }
+  if (!metarStations.includes(st)) metarStations.push(st);
+  if (!metarDefault) metarDefault = st;
+  saveMetarStorage();
+  renderMetarStations();
+  setMetarMsg(`Salvo: ${st}`);
+}
+
+function deleteMetarStation(){
+  clearMetarMsg();
+  const sel = document.getElementById("metarSaved");
+  const st = normStation(sel?.value || "");
+  if (!st){
+    setMetarMsg("Selecione um aeroporto salvo para excluir.", true);
+    return;
+  }
+  if (!confirm(`Excluir "${st}" da lista de salvos?`)) return;
+
+  metarStations = metarStations.filter(x => x !== st);
+  if (metarDefault === st) metarDefault = metarStations[0] || "";
+  saveMetarStorage();
+  renderMetarStations();
+
+  const input = document.getElementById("metarInput");
+  if (input && input.value.toUpperCase() === st) input.value = "";
+
+  setMetarMsg(`Excluído: ${st}`);
+}
+
+function setMetarAsDefault(){
+  clearMetarMsg();
+  const st = currentMetarStation();
+  if (!st){
+    setMetarMsg("Digite um ICAO ou selecione um salvo para definir como padrão.", true);
+    return;
+  }
+  if (!metarStations.includes(st)) metarStations.push(st);
+  metarDefault = st;
+  saveMetarStorage();
+  renderMetarStations();
+  setMetarMsg(`Padrão definido: ${st}`);
+}
+
+function metarPhenomenaToPt(code){
+  const map = {
+    "TS":"Trovoada",
+    "RA":"Chuva",
+    "DZ":"Garoa",
+    "SN":"Neve",
+    "SG":"Grãos de neve",
+    "PL":"Granizo pequeno",
+    "GR":"Granizo",
+    "GS":"Granizo (pequeno)",
+    "UP":"Precip. desconhecida",
+    "BR":"Névoa (mist)",
+    "FG":"Nevoeiro",
+    "FU":"Fumaça",
+    "VA":"Cinzas vulcânicas",
+    "DU":"Poeira em suspensão",
+    "SA":"Areia",
+    "HZ":"Névoa seca (haze)",
+    "PO":"Redemoinho de poeira/areia",
+    "SQ":"Rajadas (squall)",
+    "FC":"Tromba d'água/tornado",
+    "SS":"Tempestade de areia",
+    "DS":"Tempestade de poeira",
+    "SH":"Pancadas",
+    "FZ":"Congelante",
+    "VC":"Nas proximidades"
+  };
+  return map[code] || code;
+}
+
+function parseMetar(metarText){
+  const raw = String(metarText || "").trim();
+  if (!raw) return null;
+
+  // algumas fontes retornam múltiplas linhas; usa a primeira que tem estação
+  const line = raw.split("\n").map(x=>x.trim()).find(x=>/^[A-Z0-9]{4}\s/.test(x)) || raw.split("\n")[0].trim();
+
+  const tokens = line.split(/\s+/);
+  const out = { raw: line, station:"", timeZ:"", windDir:null, windKt:null, gustKt:null, windVar:null,
+                vis:null, visM:null, phenomena:[], clouds:[], ceilingFt:null,
+                tempC:null, dewC:null, altimeter:null, qnhHpa:null, altInHg:null };
+
+  // Estação
+  if (/^[A-Z0-9]{4}$/.test(tokens[0])) out.station = tokens[0];
+
+  // Hora DDHHMMZ
+  const t = tokens.find(x=>/^\d{6}Z$/.test(x));
+  if (t) out.timeZ = t;
+
+  // CAVOK
+  if (tokens.includes("CAVOK")){
+    out.vis = "CAVOK";
+    out.visM = 10000;
+  }
+
+  // Vento dddff(Ggg)?KT ou VRBffKT
+  const w = tokens.find(x=>/^(\d{3}|VRB)\d{2,3}(G\d{2,3})?KT$/.test(x));
+  if (w){
+    const m = w.match(/^(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT$/);
+    if (m){
+      out.windDir = m[1] === "VRB" ? null : Number(m[1]);
+      out.windVar = m[1] === "VRB";
+      out.windKt = Number(m[2]);
+      out.gustKt = m[3] ? Number(m[3]) : null;
+    }
+  }
+
+  // Variação de direção 180V240
+  const vv = tokens.find(x=>/^\d{3}V\d{3}$/.test(x));
+  if (vv) out.windVar = out.windVar || vv;
+
+  // Visibilidade: 4 dígitos em metros ou XSM
+  const v4 = tokens.find(x=>/^\d{4}$/.test(x));
+  if (v4){
+    out.vis = `${v4} m`;
+    out.visM = Number(v4);
+  } else {
+    const vsm = tokens.find(x=>/^\d{1,2}(\s?\d\/\d)?SM$/.test(x) || /^(\d\/\d)SM$/.test(x));
+    // fontes podem vir "1/2SM" ou "3SM"
+    const vsm2 = tokens.find(x=>/^\d{1,2}SM$/.test(x) || /^(\d\/\d)SM$/.test(x) || /^\d{1,2}\s\d\/\dSM$/.test(x));
+    const cand = vsm || vsm2;
+    if (cand){
+      // converte para metros (aprox): 1 SM = 1609.34 m
+      let sm = null;
+      if (/^\d+SM$/.test(cand)) sm = Number(cand.replace("SM",""));
+      else if (/^\d\/\dSM$/.test(cand)){
+        const [a,b]=cand.replace("SM","").split("/").map(Number);
+        if (a && b) sm = a/b;
+      }
+      if (sm !== null && Number.isFinite(sm)){
+        out.vis = `${sm} SM`;
+        out.visM = Math.round(sm * 1609.34);
+      } else {
+        out.vis = cand;
+      }
+    }
+  }
+
+  // Fenômenos: tokens com -/+ e códigos
+  tokens.forEach(tok=>{
+    if (/^(MI|PR|BC|DR|BL|SH|TS|FZ)?(DZ|RA|SN|SG|PL|GR|GS|UP|BR|FG|FU|VA|DU|SA|HZ|PO|SQ|FC|SS|DS)+$/.test(tok) ||
+        /^(\+|-|VC)?(TS|RA|DZ|SN|FG|BR|HZ|SH|FZ|SQ|FC|SS|DS)+$/.test(tok)){
+      // Ignora "AUTO", "COR" etc
+      if (/^(AUTO|COR)$/.test(tok)) return;
+      out.phenomena.push(tok);
+    }
+  });
+
+  // Nuvens: FEW/SCT/BKN/OVC/VVnnn
+  tokens.forEach(tok=>{
+    const m = tok.match(/^(FEW|SCT|BKN|OVC|VV)(\d{3})(CB|TCU)?$/);
+    if (!m) return;
+    const cov=m[1]; const hHund=Number(m[2]);
+    const heightFt = hHund*100;
+    const type = m[3] || "";
+    out.clouds.push({ cover: cov, heightFt, type });
+    if (cov === "BKN" || cov === "OVC" || cov === "VV"){
+      if (out.ceilingFt === null || out.ceilingFt === undefined || heightFt < out.ceilingFt) out.ceilingFt = heightFt;
+    }
+  });
+
+  // Temp/dew: 18/12 ou M01/M03
+  const td = tokens.find(x=>/^(M?\d{2})\/(M?\d{2})$/.test(x));
+  if (td){
+    const m=td.match(/^(M?\d{2})\/(M?\d{2})$/);
+    const tStr=m[1], dStr=m[2];
+    const tVal = (tStr.startsWith("M")?-1:1) * Number(tStr.replace("M",""));
+    const dVal = (dStr.startsWith("M")?-1:1) * Number(dStr.replace("M",""));
+    out.tempC = Number.isFinite(tVal)?tVal:null;
+    out.dewC = Number.isFinite(dVal)?dVal:null;
+  }
+
+  // Altímetro: Q1013 / A2992
+  const q = tokens.find(x=>/^Q\d{4}$/.test(x));
+  if (q){
+    out.altimeter = q;
+    out.qnhHpa = Number(q.slice(1));
+  }
+  const a = tokens.find(x=>/^A\d{4}$/.test(x));
+  if (a){
+    out.altimeter = a;
+    const inh = Number(a.slice(1))/100;
+    out.altInHg = Number.isFinite(inh)?inh:null;
+  }
+
+  return out;
+}
+
+function cloudsToText(clouds){
+  if (!clouds || !clouds.length) return "—";
+  const map = { FEW:"Poucas", SCT:"Espalhadas", BKN:"Quebradas", OVC:"Encoberto", VV:"Vertical" };
+  return clouds.map(c=>{
+    const cover = map[c.cover] || c.cover;
+    const base = `${c.heightFt} ft`;
+    const extra = c.type ? ` (${c.type})` : "";
+    return `${cover} ${base}${extra}`;
+  }).join(" • ");
+}
+
+function phenomenaToText(phenList){
+  if (!phenList || !phenList.length) return "—";
+  // traduz por partes (-RA, +TSRA, VCTS etc)
+  return phenList.map(p=>{
+    let intensity="";
+    let s=p;
+    if (s.startsWith("+")){ intensity="Forte "; s=s.slice(1); }
+    else if (s.startsWith("-")){ intensity="Fraca "; s=s.slice(1); }
+
+    let near="";
+    if (s.startsWith("VC")){ near=" (nas proximidades)"; s=s.slice(2); }
+
+    // decompor em pares
+    const parts=[];
+    // prefixos possíveis no começo (SH/TS/FZ)
+    const prefixes=[];
+    while (s.length>=2 && ["SH","TS","FZ"].includes(s.slice(0,2))){
+      prefixes.push(s.slice(0,2));
+      s=s.slice(2);
+    }
+    if (prefixes.length) parts.push(prefixes.map(metarPhenomenaToPt).join(" + "));
+    // resto em pares
+    for (let i=0;i<s.length;i+=2){
+      parts.push(metarPhenomenaToPt(s.slice(i,i+2)));
+    }
+    return `${intensity}${parts.filter(Boolean).join(" + ")}${near}`.trim();
+  }).join(" • ");
+}
+
+function evaluateMetarForDrone(decoded){
+  const reasons=[];
+  let level="OK"; // OK | ATENCAO | NAO
+
+  const wind = Number(decoded?.windKt);
+  const gust = Number(decoded?.gustKt);
+  const visM = Number(decoded?.visM);
+  const ceil = decoded?.ceilingFt;
+
+  // Fenômenos críticos
+  const phenRaw = (decoded?.phenomena || []).join(" ");
+  const hasTS = /TS/.test(phenRaw);
+  const hasFG = /(FG|FZFG)/.test(phenRaw);
+  const hasSSDS = /(SS|DS)/.test(phenRaw);
+  const hasFZ = /FZ/.test(phenRaw);
+
+  if (hasTS){ reasons.push("Trovoada (TS)"); level="NAO"; }
+  if (hasSSDS){ reasons.push("Tempestade de poeira/areia (SS/DS)"); level="NAO"; }
+  if (hasFG){ reasons.push("Nevoeiro (FG)"); level = (level==="NAO")?level:"NAO"; }
+
+  // Vento
+  if (Number.isFinite(wind)){
+    if (wind > 22){ reasons.push(`Vento alto: ${wind} kt`); level="NAO"; }
+    else if (wind >= 16){ reasons.push(`Vento moderado: ${wind} kt`); level = (level==="NAO")?level:"ATENCAO"; }
+  }
+  if (Number.isFinite(gust)){
+    if (gust > 28){ reasons.push(`Rajadas fortes: ${gust} kt`); level="NAO"; }
+    else if (gust >= 21){ reasons.push(`Rajadas: ${gust} kt`); level = (level==="NAO")?level:"ATENCAO"; }
+  }
+
+  // Visibilidade
+  if (Number.isFinite(visM)){
+    if (visM < 3000){ reasons.push(`Visibilidade baixa: ${Math.round(visM/100)/10} km`); level="NAO"; }
+    else if (visM < 5000){ reasons.push(`Visibilidade reduzida: ${Math.round(visM/100)/10} km`); level = (level==="NAO")?level:"ATENCAO"; }
+  }
+
+  // Teto (ceiling)
+  if (Number.isFinite(ceil)){
+    if (ceil < 500){ reasons.push(`Teto muito baixo: ${ceil} ft`); level="NAO"; }
+    else if (ceil < 1000){ reasons.push(`Teto baixo: ${ceil} ft`); level = (level==="NAO")?level:"ATENCAO"; }
+  }
+
+  // Congelante (atenção mesmo que não seja "NAO")
+  if (hasFZ && level!=="NAO"){ reasons.push("Condição congelante (FZ)"); level="ATENCAO"; }
+
+  if (!reasons.length) reasons.push("Condições dentro do esperado.");
+
+  const label = (level==="OK") ? "OK para operação (com cautela)" :
+                (level==="ATENCAO") ? "Atenção" :
+                "Não recomendado";
+
+  const css = (level==="OK") ? "ok" : (level==="ATENCAO") ? "warn" : "no";
+
+  return { level, label, css, reasons };
+}
+
+function renderMetarResult(decoded){
+  const box = document.getElementById("metarResult");
+  if (!box) return;
+
+  const evalr = evaluateMetarForDrone(decoded);
+
+  const station = decoded?.station || currentMetarStation() || "—";
+  const timeZ = decoded?.timeZ ? decoded.timeZ : "—";
+
+  const windTxt = (decoded?.windKt == null && !decoded?.windVar) ? "—" :
+    `${decoded?.windVar ? "VRB" : String(decoded?.windDir ?? "—").padStart(3,"0")} ${decoded?.windKt ?? "—"} kt` +
+    (decoded?.gustKt ? ` (G${decoded.gustKt})` : "") +
+    (typeof decoded?.windVar === "string" ? ` • ${decoded.windVar}` : "");
+
+  const visTxt = decoded?.vis ? decoded.vis : "—";
+  const ceilTxt = Number.isFinite(decoded?.ceilingFt) ? `${decoded.ceilingFt} ft` : "—";
+  const tempTxt = (decoded?.tempC == null) ? "—" : `${decoded.tempC}°C`;
+  const dewTxt = (decoded?.dewC == null) ? "—" : `${decoded.dewC}°C`;
+
+  let altTxt="—";
+  if (decoded?.qnhHpa) altTxt = `QNH ${decoded.qnhHpa} hPa`;
+  else if (decoded?.altInHg) altTxt = `ALT ${decoded.altInHg.toFixed(2)} inHg`;
+
+  const cloudsTxt = cloudsToText(decoded?.clouds || []);
+  const phenTxt = phenomenaToText(decoded?.phenomena || []);
+
+  box.style.display = "block";
+  box.innerHTML = `
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+      <div style="font-weight:900;">${station}</div>
+      <div class="metar-badge ${evalr.css}">● ${evalr.label}</div>
+    </div>
+    <div class="metar-decoded" style="margin-top:10px;">
+      <div class="weather-item">
+        <div class="weather-label">Hora (UTC)</div>
+        <div class="weather-value">${timeZ}</div>
+      </div>
+      <div class="weather-item">
+        <div class="weather-label">Vento</div>
+        <div class="weather-value">${windTxt}</div>
+      </div>
+      <div class="weather-item">
+        <div class="weather-label">Visibilidade</div>
+        <div class="weather-value">${visTxt}</div>
+      </div>
+      <div class="weather-item">
+        <div class="weather-label">Teto (ceiling)</div>
+        <div class="weather-value">${ceilTxt}</div>
+      </div>
+      <div class="weather-item">
+        <div class="weather-label">Temperatura</div>
+        <div class="weather-value">${tempTxt}</div>
+      </div>
+      <div class="weather-item">
+        <div class="weather-label">Orvalho</div>
+        <div class="weather-value">${dewTxt}</div>
+      </div>
+      <div class="weather-item span-2">
+        <div class="weather-label">Fenômenos</div>
+        <div class="weather-value">${phenTxt}</div>
+      </div>
+      <div class="weather-item span-2">
+        <div class="weather-label">Nuvens (camadas)</div>
+        <div class="weather-value">${cloudsTxt}</div>
+      </div>
+      <div class="weather-item span-2">
+        <div class="weather-label">Pressão</div>
+        <div class="weather-value">${altTxt}</div>
+      </div>
+      <div class="weather-item span-2">
+        <div class="weather-label">Avaliação (motivos)</div>
+        <div class="weather-value">${evalr.reasons.map(r=>`• ${r}`).join("<br>")}</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      <div class="weather-label" style="margin-bottom:6px;">METAR bruto</div>
+      <pre>${escapeHtml(decoded?.raw || "")}</pre>
+    </div>
+  `;
+}
+
+async function fetchMetar(){
+  clearMetarMsg();
+  const station = currentMetarStation();
+  if (!station){
+    setMetarMsg("Digite ICAO (ex: SBGR) ou selecione um aeroporto salvo.", true);
+    return;
+  }
+
+  const box = document.getElementById("metarResult");
+  if (box){ box.style.display="none"; box.innerHTML=""; }
+
+  try{
+    // VATSIM METAR proxy: retorna texto puro
+    // Ex: https://metar.vatsim.net/SBGR
+    const url = `https://metar.vatsim.net/${encodeURIComponent(station)}`;
+    const res = await fetch(url, { method:"GET", cache:"no-store" });
+    if (!res.ok) throw new Error("Falha ao buscar METAR. Verifique o código do aeroporto e sua conexão.");
+    const text = await res.text();
+    const decoded = parseMetar(text);
+    if (!decoded || !decoded.raw){
+      throw new Error("METAR não encontrado para esse aeroporto.");
+    }
+    renderMetarResult(decoded);
+    // auto salva no histórico se já existia
+    if (metarStations.includes(station) && station === metarDefault){
+      // ok
+    }
+  }catch(err){
+    setMetarMsg(err?.message || "Erro ao buscar METAR.", true);
+  }
+}
+
+function initMetarUI(){
+  // se não existe nada, cria lista vazia
+  if (!Array.isArray(metarStations)) metarStations = [];
+  metarStations = metarStations.map(normStation).filter(Boolean);
+  if (metarDefault) metarDefault = normStation(metarDefault);
+
+  // se default não está na lista mas existe, adiciona
+  if (metarDefault && !metarStations.includes(metarDefault)) metarStations.push(metarDefault);
+
+  saveMetarStorage();
+  renderMetarStations();
+}
+
 
 /* INIT */
 migrateFlightsCount();
