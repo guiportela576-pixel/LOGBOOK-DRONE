@@ -4,9 +4,10 @@
   <meta charset="UTF-8" />
   <title>🚁 Logbook Drone</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#06131f" />
 
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link rel="stylesheet" href="style.css?v=13" />
 
   <!-- iOS (opcional) -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -18,7 +19,6 @@
     <div class="header-top">
       <h1>🚁 Logbook Drone</h1>
 
-      <!-- RESUMO EM CARDS -->
       <div class="dashboard">
         <div class="dash-card">
           <div class="dash-label">Total</div>
@@ -44,12 +44,10 @@
       <p id="summary" class="summary" style="display:none;"></p>
     </div>
 
-    <!-- BOTÃO RECOLHER/EXPANDIR DADOS DO OPERADOR -->
     <button type="button" class="pilot-toggle" id="pilotToggle" onclick="togglePilotBox()">
       👤 Dados do operador
     </button>
 
-    <!-- DADOS FIXOS DO OPERADOR (recolhido por padrão) -->
     <div id="pilotBox" class="pilot-box">
       <input type="text" id="pilotName" class="span-2" placeholder="Nome completo" />
       <input type="text" id="pilotCPF" placeholder="CPF" />
@@ -57,11 +55,11 @@
       <button type="button" onclick="savePilot()">Salvar dados</button>
     </div>
 
-    <!-- MENU DE ABAS -->
     <div class="tabs">
       <button type="button" onclick="showTab('logbook')" id="tab-logbook" class="active">📘 Logbook</button>
       <button type="button" onclick="showTab('reports')" id="tab-reports">📊 Relatórios</button>
       <button type="button" onclick="showTab('settings')" id="tab-settings">⚙️ Cadastros</button>
+      <button type="button" onclick="showTab('weather')" id="tab-weather">🌦️ Clima</button>
       <button type="button" onclick="showTab('operation')" id="tab-operation">🟢 Operação</button>
     </div>
   </header>
@@ -83,7 +81,9 @@
           <input type="text" id="newDrone" placeholder="Novo drone" />
 
           <select id="location"></select>
-          <input type="text" id="newLocation" placeholder="Novo local" />
+          <button type="button" class="mini-btn" onclick="useCurrentLocationLogbook()">📍 Atual</button>
+
+          <input type="text" id="newLocation" class="span-2" placeholder="Novo local (GPS ou manual)" />
 
           <select id="sarpas"></select>
           <input type="text" id="newSarpas" placeholder="Novo SARPAS" />
@@ -103,6 +103,9 @@
         <div class="grid">
           <select id="opDrone" class="span-2"></select>
           <select id="opSarpas" class="span-2"></select>
+
+          <input type="text" id="opLocation" class="span-2" placeholder="Local (GPS)" readonly />
+          <button type="button" class="mini-btn span-2" onclick="useCurrentLocationOperation(true)">📍 Atualizar localização</button>
         </div>
 
         <div id="opIdleBox" style="margin-top:8px;">
@@ -175,12 +178,131 @@
       </section>
     </div>
 
+    <!-- ================= ABA CLIMA ================= -->
+    <div id="tab-weather-content" class="tab-content" style="display:none;">
+      <section class="card">
+        <div class="row space">
+          <h2>Clima (pela sua localização)</h2>
+          <button type="button" class="ghost" onclick="refreshWeather()">🔄 Atualizar</button>
+        </div>
+
+        <p id="weatherPlace" class="weather-place">—</p>
+
+        <!-- METAR (aeroporto salvo) -->
+        <div class="metar-box">
+          <h3>METAR do aeroporto</h3>
+
+          <div class="grid">
+            <select id="metarSaved" class="span-2"></select>
+            <input type="text" id="metarInput" class="span-2" placeholder="Digite ICAO (ex: SBGR) ou IATA (ex: GRU)" />
+          </div>
+
+          <div class="row" style="margin-top:8px;">
+            <button type="button" onclick="fetchMetar()">📡 Buscar METAR</button>
+            <button type="button" class="ghost" onclick="saveMetarStation()">💾 Salvar</button>
+          </div>
+
+          <div class="row" style="margin-top:8px;">
+            <button type="button" class="ghost" onclick="deleteMetarStation()">🗑️ Excluir salvo</button>
+            <button type="button" class="ghost" onclick="setMetarAsDefault()">⭐ Definir padrão</button>
+          </div>
+
+          <div id="metarResult" class="metar-result" style="display:none;"></div>
+          <div id="metarMsg" class="op-msg" style="display:none;"></div>
+        </div>
+
+
+        <div class="weather-grid">
+          <div class="weather-item">
+            <div class="weather-label">Condição</div>
+            <div id="weatherCondition" class="weather-value">—</div>
+          </div>
+
+          <div class="weather-item">
+            <div class="weather-label">Vento</div>
+            <div id="weatherWind" class="weather-value">—</div>
+          </div>
+
+          <div class="weather-item">
+            <div class="weather-label">Rajadas</div>
+            <div id="weatherGust" class="weather-value">—</div>
+          </div>
+
+          <div class="weather-item">
+            <div class="weather-label">Direção</div>
+            <div id="weatherWindDir" class="weather-value">—</div>
+          </div>
+
+          <div class="weather-item">
+            <div class="weather-label">Kp (índice geomagnético)</div>
+            <div id="weatherKp" class="weather-value">—</div>
+          </div>
+
+          <div class="weather-item">
+            <div class="weather-label">Visibilidade</div>
+            <div id="weatherVis" class="weather-value">—</div>
+          </div>
+
+          <div class="weather-item span-2">
+            <div class="weather-label">Nuvens (camadas)</div>
+            <div id="weatherCloudLayers" class="weather-value">—</div>
+          </div>
+
+          <div class="weather-item span-2">
+            <div class="weather-label">Teto (base da nuvem) / teto operacional</div>
+            <div id="weatherCeiling" class="weather-value">—</div>
+          </div>
+        </div>
+
+        <div id="weatherMsg" class="op-msg" style="display:none;"></div>
+        <p class="weather-footnote">
+          * Dados meteorológicos: Open-Meteo. Kp: NOAA/SWPC. Pode haver variação conforme a cobertura da região.
+        </p>
+      </section>
+    </div>
+
     <!-- ================= ABA CADASTROS ================= -->
     <div id="tab-settings-content" class="tab-content" style="display:none;">
       <section class="card">
         <h2>Cadastros</h2>
 
-        <h3>Drones</h3>
+        <h3>Backup</h3>
+        <div class="row">
+          <button type="button" onclick="downloadBackup()">📦 Backup (.json)</button>
+          <button type="button" class="ghost" onclick="triggerImport()">📥 Importar backup</button>
+        </div>
+
+        <input
+          type="file"
+          id="backupFile"
+          accept="application/json"
+          style="display:none"
+          onchange="handleImportFile(event)"
+        />
+
+        <!-- ✅ DRONE PADRÃO -->
+        <h3 style="margin-top:14px;">Drone padrão (Operação)</h3>
+        <div class="grid">
+          <select id="defaultDroneSelect" class="span-2"></select>
+          <input type="text" id="defaultDroneNew" class="span-2" placeholder="Ou digite um novo drone padrão" />
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <button type="button" onclick="saveDefaultDrone()">Salvar drone padrão</button>
+          <button type="button" class="ghost" onclick="clearDefaultDrone()">Excluir padrão</button>
+        </div>
+
+        <!-- ✅ SARPAS PADRÃO -->
+        <h3 style="margin-top:14px;">SARPAS padrão (Operação)</h3>
+        <div class="grid">
+          <select id="defaultSarpasSelect" class="span-2"></select>
+          <input type="text" id="defaultSarpasNew" class="span-2" placeholder="Ou digite um novo SARPAS padrão" />
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <button type="button" onclick="saveDefaultSarpas()">Salvar SARPAS padrão</button>
+          <button type="button" class="ghost" onclick="clearDefaultSarpas()">Excluir padrão</button>
+        </div>
+
+        <h3 style="margin-top:14px;">Drones</h3>
         <ul id="droneList" class="list"></ul>
 
         <h3>Locais</h3>
@@ -194,13 +316,6 @@
   </main>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>
-
-
-
-
-
-
-
