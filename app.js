@@ -13,6 +13,11 @@ let pilot = JSON.parse(localStorage.getItem("pilot")) || {
 let defaultDrone = localStorage.getItem("defaultDrone") || "";
 let defaultSarpas = localStorage.getItem("defaultSarpas") || "";
 
+// ✅ METAR (aba clima) - aeroportos salvos
+let metarStations = JSON.parse(localStorage.getItem("metarStations")) || [];
+let defaultMetarStation = localStorage.getItem("defaultMetarStation") || "";
+
+
 function saveAll() {
   localStorage.setItem("flights", JSON.stringify(flights));
   localStorage.setItem("drones", JSON.stringify(drones));
@@ -21,7 +26,12 @@ function saveAll() {
   localStorage.setItem("pilot", JSON.stringify(pilot));
   localStorage.setItem("defaultDrone", String(defaultDrone || ""));
   localStorage.setItem("defaultSarpas", String(defaultSarpas || ""));
+
+  // METAR
+  localStorage.setItem("metarStations", JSON.stringify(Array.isArray(metarStations) ? metarStations : []));
+  localStorage.setItem("defaultMetarStation", String(defaultMetarStation || ""));
 }
+
 
 /* =======================
    MIGRAÇÃO flightsCount
@@ -138,7 +148,9 @@ function buildBackupObject() {
       sarpas: sarpasList || [],
       pilot: pilot || { name: "", cpf: "", sarpas: "" },
       defaultDrone: String(defaultDrone || ""),
-      defaultSarpas: String(defaultSarpas || "")
+      defaultSarpas: String(defaultSarpas || ""),
+      metarStations: Array.isArray(metarStations) ? metarStations : [],
+      defaultMetarStation: String(defaultMetarStation || "")
     }
   };
 }
@@ -244,6 +256,8 @@ function handleImportFile(event) {
         : { name: "", cpf: "", sarpas: "" };
       const bDefaultDrone = normalizeStr(data.defaultDrone || "");
       const bDefaultSarpas = normalizeStr(data.defaultSarpas || "");
+      const bMetarStations = Array.isArray(data.metarStations) ? data.metarStations : [];
+      const bDefaultMetarStation = normalizeStr(data.defaultMetarStation || "");
 
       const mode = prompt(
         "IMPORTAR BACKUP\n\nDigite:\n1 = SUBSTITUIR (apaga os dados atuais)\n2 = MESCLAR (mantém e junta sem duplicar voos)\n\n(Se cancelar, não faz nada)"
@@ -266,6 +280,8 @@ function handleImportFile(event) {
         localStorage.setItem("pilot", JSON.stringify(bPilot));
         localStorage.setItem("defaultDrone", String(bDefaultDrone || ""));
         localStorage.setItem("defaultSarpas", String(bDefaultSarpas || ""));
+        localStorage.setItem("metarStations", JSON.stringify(bMetarStations));
+        localStorage.setItem("defaultMetarStation", String(bDefaultMetarStation || ""));
 
         flights = bFlights;
         drones = bDrones;
@@ -274,9 +290,12 @@ function handleImportFile(event) {
         pilot = bPilot;
         defaultDrone = bDefaultDrone;
         defaultSarpas = bDefaultSarpas;
+        metarStations = bMetarStations;
+        defaultMetarStation = bDefaultMetarStation;
 
         if (defaultDrone && !drones.includes(defaultDrone)) drones.push(defaultDrone);
         if (defaultSarpas && !sarpasList.includes(defaultSarpas)) sarpasList.push(defaultSarpas);
+        if (bDefaultMetarStation && !bMetarStations.includes(bDefaultMetarStation)) bMetarStations.push(bDefaultMetarStation);
 
         migrateFlightsCount();
         migrateFlightIds();
@@ -1036,6 +1055,151 @@ function clearForm() {
   setNewLocationSource("manual");
 }
 
+
+/* =======================
+   MODAL: Editar Voo (completo)
+======================= */
+let currentEditIndex = null;
+
+function fillSelectWithOptions(selectEl, items, placeholder) {
+  if (!selectEl) return;
+  selectEl.innerHTML = "";
+
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = placeholder || "Selecione";
+  selectEl.appendChild(opt0);
+
+  (Array.isArray(items) ? items : []).forEach(it => {
+    const v = normalizeStr(it);
+    if (!v) return;
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = v;
+    selectEl.appendChild(opt);
+  });
+}
+
+function bindEditModalOnce() {
+  const overlay = document.getElementById("editModalOverlay");
+  if (!overlay || overlay.dataset.bound) return;
+
+  const closeBtn = document.getElementById("editModalClose");
+  const cancelBtn = document.getElementById("editModalCancel");
+  const saveBtn = document.getElementById("editModalSave");
+
+  closeBtn?.addEventListener("click", closeEditModal);
+  cancelBtn?.addEventListener("click", closeEditModal);
+  saveBtn?.addEventListener("click", saveEditModal);
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeEditModal();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && overlay.style.display === "flex") closeEditModal();
+  });
+
+  overlay.dataset.bound = "1";
+}
+
+function openEditModal(index) {
+  const f = flights[index];
+  if (!f) return;
+
+  currentEditIndex = index;
+
+  const overlay = document.getElementById("editModalOverlay");
+  if (!overlay) {
+    alert("Modal de edição não encontrado no HTML.");
+    return;
+  }
+
+  fillSelectWithOptions(document.getElementById("editDrone"), drones, "Selecione o drone");
+  fillSelectWithOptions(document.getElementById("editLocation"), locations, "Selecione o local");
+  fillSelectWithOptions(document.getElementById("editSarpas"), sarpasList, "Selecione o SARPAS (opcional)");
+
+  const fid = String(f?.flightId || "").trim();
+  const sub = document.getElementById("editModalSub");
+  if (sub) sub.textContent = fid ? `ID: ${fid}` : "Sem ID";
+
+  document.getElementById("editDate").value = f.date || "";
+  document.getElementById("editDuration").value = String(Number(f.duration) || 0);
+  document.getElementById("editFlightsCount").value = String(getFlightsCount(f));
+  document.getElementById("editNotes").value = f.notes || "";
+
+  const dSel = document.getElementById("editDrone");
+  const lSel = document.getElementById("editLocation");
+  const sSel = document.getElementById("editSarpas");
+
+  dSel.value = drones.includes(f.drone) ? f.drone : "";
+  lSel.value = locations.includes(f.location) ? f.location : "";
+  sSel.value = sarpasList.includes(f.sarpas) ? f.sarpas : "";
+
+  document.getElementById("editNewDrone").value = (!drones.includes(f.drone) && normalizeStr(f.drone)) ? f.drone : "";
+  document.getElementById("editNewLocation").value = (!locations.includes(f.location) && normalizeStr(f.location)) ? f.location : "";
+  document.getElementById("editNewSarpas").value = (!sarpasList.includes(f.sarpas) && normalizeStr(f.sarpas)) ? f.sarpas : "";
+
+  overlay.style.display = "flex";
+}
+
+function closeEditModal() {
+  const overlay = document.getElementById("editModalOverlay");
+  if (!overlay) return;
+  overlay.style.display = "none";
+  currentEditIndex = null;
+}
+
+function saveEditModal() {
+  if (currentEditIndex === null) return;
+  const f = flights[currentEditIndex];
+  if (!f) {
+    closeEditModal();
+    return;
+  }
+
+  const date = document.getElementById("editDate")?.value || "";
+  const duration = parseInt(document.getElementById("editDuration")?.value || "0", 10);
+  const flightsNum = parseInt(document.getElementById("editFlightsCount")?.value || "1", 10);
+
+  const typedDrone = normalizeStr(document.getElementById("editNewDrone")?.value);
+  const selectedDrone = normalizeStr(document.getElementById("editDrone")?.value);
+  const drone = typedDrone || selectedDrone;
+
+  const typedLoc = normalizeStr(document.getElementById("editNewLocation")?.value);
+  const selectedLoc = normalizeStr(document.getElementById("editLocation")?.value);
+  const location = typedLoc || selectedLoc || "";
+
+  const typedSar = normalizeStr(document.getElementById("editNewSarpas")?.value);
+  const selectedSar = normalizeStr(document.getElementById("editSarpas")?.value);
+  const sarpas = typedSar || selectedSar || "";
+
+  const notes = document.getElementById("editNotes")?.value || "";
+
+  if (!date || !drone || !Number.isFinite(duration) || duration <= 0) {
+    alert("Preencha pelo menos: data, duração e drone.");
+    return;
+  }
+
+  if (drone && !drones.includes(drone)) drones.push(drone);
+  if (location && !locations.includes(location)) locations.push(location);
+  if (sarpas && !sarpasList.includes(sarpas)) sarpasList.push(sarpas);
+
+  f.date = date;
+  f.duration = Math.max(1, duration);
+  f.flightsCount = Math.max(1, Math.floor(Number.isFinite(flightsNum) ? flightsNum : 1));
+  f.drone = drone;
+  f.location = location;
+  f.sarpas = sarpas;
+  f.notes = notes;
+
+  ensureFlightHasId(f);
+
+  saveAll();
+  render();
+  closeEditModal();
+}
+
 function exportCSV() {
   let csv = "Operador,CPF,SARPAS Operador\n";
   csv += `${pilot.name},${pilot.cpf},${pilot.sarpas}\n\n`;
@@ -1066,158 +1230,13 @@ function clearFilters() {
   renderFlights();
 }
 
-/* =======================
-   MODAL: Editar Voo
-======================= */
-let currentEditIndex = null;
-
-function fillSelectWithOptions(selectEl, items, placeholder) {
-  if (!selectEl) return;
-  selectEl.innerHTML = "";
-
-  const opt0 = document.createElement("option");
-  opt0.value = "";
-  opt0.textContent = placeholder || "Selecione";
-  selectEl.appendChild(opt0);
-
-  (Array.isArray(items) ? items : []).forEach(it => {
-    const v = normalizeStr(it);
-    if (!v) return;
-    const opt = document.createElement("option");
-    opt.value = v;
-    opt.textContent = v;
-    selectEl.appendChild(opt);
-  });
-}
-
-function openEditModal(index) {
-  const f = flights[index];
-  if (!f) return;
-
-  currentEditIndex = index;
-
-  const overlay = document.getElementById("editModalOverlay");
-  if (!overlay) {
-    // fallback (se alguém remover o HTML do modal)
-    editFlight(index);
-    return;
-  }
-
-  // popular selects
-  fillSelectWithOptions(document.getElementById("editDrone"), drones, "Selecione o drone");
-  fillSelectWithOptions(document.getElementById("editLocation"), locations, "Selecione o local");
-  fillSelectWithOptions(document.getElementById("editSarpas"), sarpasList, "Selecione o SARPAS (opcional)");
-
-  // preencher valores
-  const fid = String(f?.flightId || "").trim();
-  const sub = document.getElementById("editModalSub");
-  if (sub) {
-    sub.textContent = fid ? `ID: ${fid}` : "Sem ID";
-  }
-
-  const edDate = document.getElementById("editDate");
-  const edDur = document.getElementById("editDuration");
-  const edCnt = document.getElementById("editFlightsCount");
-  const edDrone = document.getElementById("editDrone");
-  const edLoc = document.getElementById("editLocation");
-  const edSar = document.getElementById("editSarpas");
-  const edNotes = document.getElementById("editNotes");
-
-  const edNewDrone = document.getElementById("editNewDrone");
-  const edNewLoc = document.getElementById("editNewLocation");
-  const edNewSar = document.getElementById("editNewSarpas");
-
-  if (edDate) edDate.value = f.date || "";
-  if (edDur) edDur.value = String(Number(f.duration) || 0);
-  if (edCnt) edCnt.value = String(getFlightsCount(f));
-  if (edNotes) edNotes.value = f.notes || "";
-
-  if (edDrone) edDrone.value = drones.includes(f.drone) ? f.drone : "";
-  if (edLoc) edLoc.value = locations.includes(f.location) ? f.location : "";
-  if (edSar) edSar.value = sarpasList.includes(f.sarpas) ? f.sarpas : "";
-
-  if (edNewDrone) edNewDrone.value = (!drones.includes(f.drone) && normalizeStr(f.drone)) ? f.drone : "";
-  if (edNewLoc) edNewLoc.value = (!locations.includes(f.location) && normalizeStr(f.location)) ? f.location : "";
-  if (edNewSar) edNewSar.value = (!sarpasList.includes(f.sarpas) && normalizeStr(f.sarpas)) ? f.sarpas : "";
-
-  overlay.style.display = "flex";
-  overlay.setAttribute("aria-hidden", "false");
-
-  // foco
-  setTimeout(() => {
-    (edDate || edDur || edCnt)?.focus?.();
-  }, 50);
-}
-
-function closeEditModal() {
-  const overlay = document.getElementById("editModalOverlay");
-  if (!overlay) return;
-  overlay.style.display = "none";
-  overlay.setAttribute("aria-hidden", "true");
-  currentEditIndex = null;
-}
-
-function saveEditModal() {
-  if (currentEditIndex === null) return;
-  const f = flights[currentEditIndex];
-  if (!f) {
-    closeEditModal();
-    return;
-  }
-
-  const date = document.getElementById("editDate")?.value || "";
-  const durationNum = Number(document.getElementById("editDuration")?.value || 0);
-  const flightsNum = Number(document.getElementById("editFlightsCount")?.value || 0);
-
-  const typedDrone = normalizeStr(document.getElementById("editNewDrone")?.value);
-  const selectedDrone = normalizeStr(document.getElementById("editDrone")?.value);
-  const drone = typedDrone || selectedDrone;
-
-  const typedLoc = normalizeStr(document.getElementById("editNewLocation")?.value);
-  const selectedLoc = normalizeStr(document.getElementById("editLocation")?.value);
-  const location = typedLoc || selectedLoc;
-
-  const typedSar = normalizeStr(document.getElementById("editNewSarpas")?.value);
-  const selectedSar = normalizeStr(document.getElementById("editSarpas")?.value);
-  const sarpas = typedSar || selectedSar;
-
-  const notes = document.getElementById("editNotes")?.value || "";
-
-  if (!date || !Number.isFinite(durationNum) || durationNum <= 0 || !Number.isFinite(flightsNum) || flightsNum <= 0 || !drone) {
-    alert("Preencha data, duração, nº de voos e drone.");
-    return;
-  }
-
-  const oldDate = String(f.date || "");
-
-  // upsert nos cadastros
-  if (typedDrone && !drones.includes(typedDrone)) drones.push(typedDrone);
-  if (typedLoc && !locations.includes(typedLoc)) locations.push(typedLoc);
-  if (typedSar && !sarpasList.includes(typedSar)) sarpasList.push(typedSar);
-
-  f.date = date;
-  f.duration = Math.max(1, Math.floor(durationNum));
-  f.flightsCount = Math.max(1, Math.floor(flightsNum));
-  f.drone = drone;
-  f.location = location || "";
-  f.sarpas = sarpas || "";
-  f.notes = notes;
-
-  // Se mudar a data, atualiza o ID do voo para manter padrão AAAAMMDDNNNN
-  if (oldDate !== String(date)) {
-    f.flightId = "";
-    ensureFlightHasId(f);
-  }
-
-  saveAll();
-  render();
-  closeEditModal();
-}
-
-// Compatibilidade: se algum lugar ainda chamar editFlight(), abre o modal
-function editFlight(index) {
+function editFlight(index){
   openEditModal(index);
 }
+
+
+
+
 
 function renderMonthlySummary() {
   const ul = document.getElementById("monthlySummary");
@@ -1550,10 +1569,702 @@ async function refreshWeather(force = false) {
   }
 }
 
+
+/* =======================
+   METAR (aeroporto)
+   Fonte: VATSIM METAR feed (texto cru) - https://metar.vatsim.net/metar.php?id=ICAO
+======================= */
+
+const metarState = {
+  lastStation: "",
+  lastText: "",
+  lastFetchedAt: 0,
+  didAutoFetch: false
+};
+
+function normalizeStationCode(code) {
+  return String(code || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+function metarMsg(text, isError = false) {
+  const el = document.getElementById("metarMsg");
+  if (!el) return;
+  el.style.display = "block";
+  el.textContent = text;
+  el.style.borderColor = isError ? "rgba(185,28,28,0.45)" : "rgba(11,42,91,0.16)";
+  setTimeout(() => { el.style.display = "none"; }, 4200);
+}
+
+function renderMetarControls() {
+  const sel = document.getElementById("metarSaved");
+  const input = document.getElementById("metarInput");
+  if (!sel) return;
+
+  // dedup + normalize
+  metarStations = Array.from(new Set((Array.isArray(metarStations) ? metarStations : [])
+    .map(normalizeStationCode)
+    .filter(Boolean)));
+
+  sel.innerHTML = "";
+
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = metarStations.length ? "Selecione um aeroporto salvo" : "Nenhum aeroporto salvo ainda";
+  sel.appendChild(opt0);
+
+  metarStations.forEach(code => {
+    const opt = document.createElement("option");
+    opt.value = code;
+    opt.textContent = code === defaultMetarStation ? `${code} ⭐` : code;
+    sel.appendChild(opt);
+  });
+
+  // pré-seleciona o padrão
+  if (defaultMetarStation && metarStations.includes(defaultMetarStation)) {
+    sel.value = defaultMetarStation;
+  }
+
+  if (input && !normalizeStationCode(input.value)) {
+    input.value = defaultMetarStation || "";
+  }
+}
+
+function getChosenStation() {
+  const input = document.getElementById("metarInput");
+  const sel = document.getElementById("metarSaved");
+  const typed = normalizeStationCode(input?.value);
+  const selected = normalizeStationCode(sel?.value);
+  return typed || selected || "";
+}
+
+async function fetchMetar(force = false) {
+  const station = getChosenStation();
+  if (!station) {
+    metarMsg("Digite ou selecione um aeroporto (ICAO/IATA).", true);
+    return;
+  }
+
+  // cache curto (20s)
+  const now = Date.now();
+  if (!force && metarState.lastStation === station && (now - metarState.lastFetchedAt) < 20000 && metarState.lastText) {
+    showMetarResult(station, metarState.lastText);
+    return;
+  }
+
+  const resultEl = document.getElementById("metarResult");
+  if (resultEl) resultEl.style.display = "none";
+
+  try {
+    metarMsg("Buscando METAR…");
+    const url = `https://metar.vatsim.net/metar.php?id=${encodeURIComponent(station)}`;
+    const res = await fetch(url, { method: "GET", cache: "no-store" });
+    if (!res.ok) throw new Error("Falha ao obter METAR.");
+
+    const text = String(await res.text() || "").trim();
+    if (!text) throw new Error("METAR vazio ou indisponível.");
+
+    metarState.lastStation = station;
+    metarState.lastText = text;
+    metarState.lastFetchedAt = Date.now();
+
+    showMetarResult(station, text);
+  } catch (err) {
+    // CORS ou rede
+    const msg = err?.message || "Não foi possível buscar o METAR.";
+    metarMsg(
+      msg.includes("Failed to fetch")
+        ? "Não consegui buscar o METAR (bloqueio de rede/CORS). Se estiver abrindo o app como arquivo (file://), hospede em um servidor (ex.: GitHub Pages) ou use um proxy."
+        : msg,
+      true
+    );
+  }
+}
+
+function showMetarResult(station, text) {
+  const el = document.getElementById("metarResult");
+  if (el) {
+    el.style.display = "block";
+    el.textContent = `${station}
+${text}`;
+  }
+
+  // Decodifica e mostra em cards + avaliação operacional
+  try {
+    const decoded = decodeMetarText(station, text);
+    renderMetarDecoded(decoded);
+    renderMetarOps(decoded);
+  } catch (e) {
+    // Se não conseguir decodificar, só não exibe as seções extras
+    const decEl = document.getElementById("metarDecoded");
+    const opsEl = document.getElementById("metarOps");
+    if (decEl) decEl.style.display = "none";
+    if (opsEl) opsEl.style.display = "none";
+  }
+}
+
+/* =======================
+   METAR: decodificação + tradução + avaliação (drone)
+======================= */
+
+function metarUnk(v) { return (v === null || v === undefined || v === "") ? "—" : v; }
+
+function parseFractionToNumber(s) {
+  const t = String(s || "").trim();
+  if (!t) return null;
+  if (t.includes("/")) {
+    const [a,b] = t.split("/");
+    const na = Number(a), nb = Number(b);
+    if (Number.isFinite(na) && Number.isFinite(nb) && nb !== 0) return na/nb;
+  }
+  const n = Number(t);
+  return Number.isFinite(n) ? n : null;
+}
+
+function knotsToMs(kt) {
+  const v = Number(kt);
+  return Number.isFinite(v) ? v * 0.514444 : null;
+}
+
+function metersToKm(m) {
+  const v = Number(m);
+  return Number.isFinite(v) ? v/1000 : null;
+}
+
+function inhgToHpa(inhg) {
+  const v = Number(inhg);
+  return Number.isFinite(v) ? v * 33.8638866667 : null;
+}
+
+function cloudAmountPt(code) {
+  const map = {
+    FEW: "Poucas (FEW)",
+    SCT: "Dispersas (SCT)",
+    BKN: "Fragmentadas (BKN)",
+    OVC: "Encoberto (OVC)",
+    VV: "Vertical visibility (VV)",
+    NSC: "Sem nuvens significativas (NSC)",
+    NCD: "Sem nuvens detectadas (NCD)",
+    SKC: "Céu limpo (SKC)",
+    CLR: "Céu limpo (CLR)"
+  };
+  return map[code] || code;
+}
+
+function weatherTokenPt(token) {
+  const t = String(token || "").trim();
+  if (!t) return "";
+
+  // intensidade / proximidade
+  let intensity = "";
+  let rest = t;
+
+  if (rest.startsWith("+")) { intensity = "Forte"; rest = rest.slice(1); }
+  else if (rest.startsWith("-")) { intensity = "Fraca"; rest = rest.slice(1); }
+  else if (rest.startsWith("VC")) { intensity = "Nas proximidades"; rest = rest.slice(2); }
+
+  const dict = {
+    // descritores
+    MI:"Raso", PR:"Parcial", BC:"Bancos", DR:"Baixo arrastado", BL:"Soprando", SH:"Pancadas",
+    TS:"Trovoada", FZ:"Congelante",
+    // precipitação
+    DZ:"Garoa", RA:"Chuva", SN:"Neve", SG:"Grãos de neve", IC:"Cristais de gelo", PL:"Pelotas de gelo",
+    GR:"Granizo", GS:"Granizo pequeno", UP:"Precipitação desconhecida",
+    // obscurecimento
+    BR:"Névoa úmida (BR)", FG:"Nevoeiro (FG)", FU:"Fumaça", VA:"Cinzas vulcânicas", DU:"Poeira",
+    SA:"Areia", HZ:"Névoa seca (HZ)", PY:"Spray",
+    // outros
+    PO:"Redemoinhos de poeira/areia", SQ:"Rajada súbita (SQ)", FC:"Funil/tromba", SS:"Tempestade de areia", DS:"Tempestade de poeira"
+  };
+
+  // Quebra em códigos de 2 letras (com alguns de 2 que funcionam como prefixo)
+  // Ex.: TSRA -> TS + RA | SHRA -> SH + RA | FZFG -> FZ + FG
+  const parts = [];
+  for (let i = 0; i < rest.length; i += 2) {
+    parts.push(rest.slice(i, i+2));
+  }
+
+  const translated = parts.map(p => dict[p] || p).filter(Boolean).join(" + ");
+  if (!translated) return "";
+
+  return intensity ? `${translated} (${intensity})` : translated;
+}
+
+function isWeatherToken(tok) {
+  // começa com + - VC ou combinações típicas (TS, SH, FZ...) e letras
+  const t = String(tok || "").trim();
+  if (!t) return false;
+  if (t === "NOSIG") return false;
+  if (/^(RMK|BECMG|TEMPO)$/.test(t)) return false;
+  if (/^(NSC|NCD|SKC|CLR)$/.test(t)) return false;
+  if (/^(FEW|SCT|BKN|OVC|VV)\d{3}/.test(t)) return false;
+  if (/^(A|Q)\d{4}$/.test(t)) return false;
+  if (/^(M?\d{2})\/(M?\d{2})$/.test(t)) return false;
+  if (/^\d{4}$/.test(t) || /^\d{1,2}SM$/.test(t) || /^\d\/\dSM$/.test(t) || /^\d \d\/\dSM$/.test(t) || t === "CAVOK") return false;
+  // sinais e letras
+  return /^[\+\-A-Z]{2,}$/.test(t);
+}
+
+function decodeMetarText(stationFallback, rawText) {
+  const raw = String(rawText || "").trim();
+  const tokens = raw.split(/\s+/).filter(Boolean);
+
+  const out = {
+    station: normalizeStationCode(stationFallback),
+    type: "",
+    timeUTC: "",
+    windDir: null,
+    windSpeedKt: null,
+    windGustKt: null,
+    windVar: null, // ex: 180V240
+    visibilityM: null,
+    visibilityRaw: "",
+    rvr: [],
+    weather: [],
+    clouds: [],
+    ceilingFt: null,
+    tempC: null,
+    dewC: null,
+    altimeterHpa: null,
+    altimeterInHg: null,
+    cavok: false
+  };
+
+  let i = 0;
+  if (tokens[i] === "METAR" || tokens[i] === "SPECI") {
+    out.type = tokens[i];
+    i++;
+  }
+
+  if (tokens[i] && /^[A-Z0-9]{4}$/.test(tokens[i])) {
+    out.station = tokens[i];
+    i++;
+  }
+
+  if (tokens[i] && /^\d{6}Z$/.test(tokens[i])) {
+    // DDHHMMZ
+    out.timeUTC = tokens[i];
+    i++;
+  }
+
+  // vento
+  if (tokens[i] && /^(VRB|\d{3})\d{2,3}(G\d{2,3})?(KT|MPS)$/.test(tokens[i])) {
+    const w = tokens[i];
+    const m = w.match(/^(VRB|\d{3})(\d{2,3})(G(\d{2,3}))?(KT|MPS)$/);
+    if (m) {
+      out.windDir = m[1];
+      out.windSpeedKt = Number(m[2]);
+      out.windGustKt = m[4] ? Number(m[4]) : null;
+      const unit = m[5];
+      if (unit === "MPS") {
+        // converte m/s -> kt
+        out.windSpeedKt = Math.round(out.windSpeedKt / 0.514444);
+        if (out.windGustKt !== null) out.windGustKt = Math.round(out.windGustKt / 0.514444);
+      }
+    }
+    i++;
+  }
+
+  // variação do vento 180V240
+  if (tokens[i] && /^\d{3}V\d{3}$/.test(tokens[i])) {
+    out.windVar = tokens[i];
+    i++;
+  }
+
+  // visibilidade / CAVOK
+  if (tokens[i] === "CAVOK") {
+    out.cavok = true;
+    out.visibilityM = 10000;
+    out.visibilityRaw = "CAVOK";
+    i++;
+  } else if (tokens[i]) {
+    // 9999 (>=10km) ou 4000 etc
+    if (/^\d{4}$/.test(tokens[i])) {
+      const v = Number(tokens[i]);
+      out.visibilityM = Number.isFinite(v) ? v : null;
+      out.visibilityRaw = tokens[i];
+      i++;
+    } else if (/^\d{1,2}SM$/.test(tokens[i])) {
+      const sm = Number(tokens[i].replace("SM",""));
+      if (Number.isFinite(sm)) {
+        out.visibilityM = Math.round(sm * 1609.344);
+        out.visibilityRaw = tokens[i];
+      }
+      i++;
+    } else if (/^\d\/\dSM$/.test(tokens[i])) {
+      const frac = tokens[i].replace("SM","");
+      const sm = parseFractionToNumber(frac);
+      if (sm !== null) {
+        out.visibilityM = Math.round(sm * 1609.344);
+        out.visibilityRaw = tokens[i];
+      }
+      i++;
+    } else if (i+1 < tokens.length && /^\d$/.test(tokens[i]) && /^\d\/\dSM$/.test(tokens[i+1])) {
+      const whole = Number(tokens[i]);
+      const frac = tokens[i+1].replace("SM","");
+      const sm = (Number.isFinite(whole) ? whole : 0) + (parseFractionToNumber(frac) || 0);
+      out.visibilityM = Math.round(sm * 1609.344);
+      out.visibilityRaw = tokens[i] + " " + tokens[i+1];
+      i += 2;
+    }
+  }
+
+  // percorre o resto até RMK
+  for (; i < tokens.length; i++) {
+    const tok = tokens[i];
+    if (tok === "RMK") break;
+
+    // RVR: R23/1400FT ou R23L/0600V1200FT etc
+    if (/^R\d{2}[LRC]?\/\d{4}(V\d{4})?FT$/.test(tok)) {
+      out.rvr.push(tok);
+      continue;
+    }
+
+    // nuvens
+    if (/^(FEW|SCT|BKN|OVC|VV)\d{3}(CB|TCU)?$/.test(tok)) {
+      const m = tok.match(/^(FEW|SCT|BKN|OVC|VV)(\d{3})(CB|TCU)?$/);
+      const amount = m[1];
+      const heightHundredsFt = Number(m[2]);
+      const heightFt = Number.isFinite(heightHundredsFt) ? heightHundredsFt * 100 : null;
+      const type = m[3] || "";
+      out.clouds.push({ raw: tok, amount, heightFt, type });
+
+      // ceiling: menor BKN/OVC/VV
+      if (["BKN","OVC","VV"].includes(amount) && Number.isFinite(heightFt)) {
+        if (out.ceilingFt === null || heightFt < out.ceilingFt) out.ceilingFt = heightFt;
+      }
+      continue;
+    }
+
+    if (/^(NSC|NCD|SKC|CLR)$/.test(tok)) {
+      out.clouds.push({ raw: tok, amount: tok, heightFt: null, type: "" });
+      continue;
+    }
+
+    // temp/dew
+    if (/^(M?\d{2})\/(M?\d{2})$/.test(tok)) {
+      const mm = tok.match(/^(M?\d{2})\/(M?\d{2})$/);
+      const t = mm[1].startsWith("M") ? -Number(mm[1].slice(1)) : Number(mm[1]);
+      const d = mm[2].startsWith("M") ? -Number(mm[2].slice(1)) : Number(mm[2]);
+      out.tempC = Number.isFinite(t) ? t : null;
+      out.dewC = Number.isFinite(d) ? d : null;
+      continue;
+    }
+
+    // altímetro
+    if (/^Q\d{4}$/.test(tok)) {
+      out.altimeterHpa = Number(tok.slice(1));
+      continue;
+    }
+    if (/^A\d{4}$/.test(tok)) {
+      const inhg = Number(tok.slice(1)) / 100;
+      out.altimeterInHg = Number.isFinite(inhg) ? inhg : null;
+      out.altimeterHpa = out.altimeterInHg ? inhgToHpa(out.altimeterInHg) : out.altimeterHpa;
+      continue;
+    }
+
+    // weather
+    if (isWeatherToken(tok)) {
+      out.weather.push(tok);
+      continue;
+    }
+
+    // ignorar outras partes (NOSIG, etc.)
+  }
+
+  // Se CAVOK, simplifica nuvens/vis
+  if (out.cavok) {
+    if (out.ceilingFt === null) out.ceilingFt = null;
+  }
+
+  return out;
+}
+
+function formatWind(decoded) {
+  if (!decoded) return "—";
+  const dir = decoded.windDir;
+  const spd = decoded.windSpeedKt;
+  if (!dir || spd === null || spd === undefined) return "—";
+  const gust = decoded.windGustKt;
+  const base = `${dir} ${spd} kt`;
+  return gust ? `${base} (G${gust})` : base;
+}
+
+function formatVisibility(decoded) {
+  if (!decoded) return "—";
+  if (decoded.visibilityRaw) {
+    if (decoded.visibilityRaw === "9999") return "10 km+";
+    if (decoded.visibilityRaw === "CAVOK") return "CAVOK (10 km+)";
+  }
+  const m = decoded.visibilityM;
+  if (!Number.isFinite(m)) return "—";
+  if (m >= 10000) return "10 km+";
+  if (m >= 1000) return `${metersToKm(m).toFixed(1)} km`;
+  return `${Math.round(m)} m`;
+}
+
+function formatClouds(decoded) {
+  if (!decoded || !Array.isArray(decoded.clouds) || !decoded.clouds.length) return "—";
+  const parts = decoded.clouds.map(c => {
+    if (!c) return null;
+    if (["NSC","NCD","SKC","CLR"].includes(c.amount)) return cloudAmountPt(c.amount);
+    const h = Number.isFinite(c.heightFt) ? `${Math.round(c.heightFt)} ft` : "";
+    const typ = c.type ? ` ${c.type}` : "";
+    return `${cloudAmountPt(c.amount)} ${h}${typ}`.trim();
+  }).filter(Boolean);
+  return parts.length ? parts.join(" • ") : "—";
+}
+
+function formatCeiling(decoded) {
+  const ft = decoded?.ceilingFt;
+  if (!Number.isFinite(ft)) return "—";
+  return `${Math.round(ft)} ft`;
+}
+
+function formatTempDew(decoded) {
+  const t = decoded?.tempC;
+  const d = decoded?.dewC;
+  if (!Number.isFinite(t) && !Number.isFinite(d)) return "—";
+  if (Number.isFinite(t) && Number.isFinite(d)) return `${t}°C / ${d}°C`;
+  if (Number.isFinite(t)) return `${t}°C`;
+  return `Orvalho ${d}°C`;
+}
+
+function formatAltimeter(decoded) {
+  const qnh = decoded?.altimeterHpa;
+  const inhg = decoded?.altimeterInHg;
+  const parts = [];
+  if (Number.isFinite(qnh)) parts.push(`${Math.round(qnh)} hPa`);
+  if (Number.isFinite(inhg)) parts.push(`${inhg.toFixed(2)} inHg`);
+  return parts.length ? parts.join(" • ") : "—";
+}
+
+function translateWeatherList(decoded) {
+  const w = Array.isArray(decoded?.weather) ? decoded.weather : [];
+  if (!w.length) return "—";
+  return w.map(weatherTokenPt).filter(Boolean).join(" • ") || "—";
+}
+
+function renderMetarDecoded(decoded) {
+  const el = document.getElementById("metarDecoded");
+  if (!el) return;
+
+  // monta cards
+  el.innerHTML = "";
+
+  const items = [
+    { label: "Estação / Hora (UTC)", value: `${metarUnk(decoded.station)} • ${metarUnk(decoded.timeUTC)}` , span2: true },
+    { label: "Vento", value: formatWind(decoded) },
+    { label: "Visibilidade", value: formatVisibility(decoded) },
+    { label: "Fenômenos", value: translateWeatherList(decoded), span2: true },
+    { label: "Nuvens", value: formatClouds(decoded), span2: true },
+    { label: "Teto (ceiling)", value: formatCeiling(decoded) },
+    { label: "Temp / Orvalho", value: formatTempDew(decoded) },
+    { label: "QNH", value: formatAltimeter(decoded), span2: true }
+  ];
+
+  items.forEach(it => {
+    const div = document.createElement("div");
+    div.className = `metar-item${it.span2 ? " span-2" : ""}`;
+
+    const lab = document.createElement("div");
+    lab.className = "metar-label";
+    lab.textContent = it.label;
+
+    const val = document.createElement("div");
+    val.className = "metar-value";
+    val.textContent = it.value;
+
+    div.appendChild(lab);
+    div.appendChild(val);
+    el.appendChild(div);
+  });
+
+  el.style.display = "grid";
+}
+
+function assessMetarForDrone(decoded) {
+  const reasons = [];
+  let level = "ok"; // ok | warn | nogo
+
+  function bump(to) {
+    const order = { ok: 0, warn: 1, nogo: 2 };
+    if (order[to] > order[level]) level = to;
+  }
+
+  // vento
+  const spd = Number(decoded?.windSpeedKt);
+  const gust = Number(decoded?.windGustKt);
+
+  if (Number.isFinite(spd)) {
+    if (spd >= 30) { bump("nogo"); reasons.push(`Vento forte (${spd} kt).`); }
+    else if (spd >= 20) { bump("warn"); reasons.push(`Vento moderado/alto (${spd} kt).`); }
+  }
+  if (Number.isFinite(gust)) {
+    if (gust >= 35) { bump("nogo"); reasons.push(`Rajadas fortes (G${gust}).`); }
+    else if (gust >= 25) { bump("warn"); reasons.push(`Rajadas consideráveis (G${gust}).`); }
+  }
+
+  // visibilidade
+  const vis = Number(decoded?.visibilityM);
+  if (Number.isFinite(vis)) {
+    if (vis < 3000) { bump("nogo"); reasons.push(`Visibilidade baixa (${formatVisibility(decoded)}).`); }
+    else if (vis < 5000) { bump("warn"); reasons.push(`Visibilidade reduzida (${formatVisibility(decoded)}).`); }
+  }
+
+  // teto
+  const ceil = Number(decoded?.ceilingFt);
+  if (Number.isFinite(ceil)) {
+    if (ceil < 1000) { bump("nogo"); reasons.push(`Teto baixo (${Math.round(ceil)} ft).`); }
+    else if (ceil < 2000) { bump("warn"); reasons.push(`Teto moderado (${Math.round(ceil)} ft).`); }
+  }
+
+  // fenômenos críticos
+  const wxRaw = (Array.isArray(decoded?.weather) ? decoded.weather : []).join(" ");
+  if (/(^|\s)(TS|TSRA|SQ|FC)(\s|$)/.test(wxRaw) || wxRaw.includes("TS")) {
+    bump("nogo");
+    reasons.push("Trovoada / atividade convectiva (TS).");
+  }
+  if (wxRaw.includes("FG") || wxRaw.includes("FZFG")) {
+    bump("nogo");
+    reasons.push("Nevoeiro (FG).");
+  }
+  if (wxRaw.includes("+RA") || wxRaw.includes("GR") || wxRaw.includes("GS")) {
+    bump("warn");
+    reasons.push("Precipitação intensa/impactante (ex.: +RA/GR).");
+  }
+  if (wxRaw.includes("SN")) {
+    bump("warn");
+    reasons.push("Neve (SN) — atenção à operação.");
+  }
+
+  if (!reasons.length) reasons.push("Condições aparentes dentro do normal para operação, considerando apenas METAR.");
+
+  const title = (level === "ok") ? "OK para operação (com cautela)"
+    : (level === "warn") ? "Atenção"
+    : "Não recomendado";
+
+  return { level, title, reasons };
+}
+
+function renderMetarOps(decoded) {
+  const el = document.getElementById("metarOps");
+  if (!el) return;
+
+  const a = assessMetarForDrone(decoded);
+
+  el.innerHTML = "";
+
+  const badge = document.createElement("div");
+  badge.className = `badge ${a.level}`;
+  badge.textContent = a.title;
+
+  const hint = document.createElement("div");
+  hint.style.fontSize = "12px";
+  hint.style.color = "var(--muted)";
+  hint.style.fontWeight = "900";
+  hint.style.marginTop = "2px";
+  hint.textContent = "Heurística simples (vento/vis/teto/fenômenos). Sempre verifique limites do seu drone e NOTAM/regras locais.";
+
+  const ul = document.createElement("ul");
+  a.reasons.forEach(r => {
+    const li = document.createElement("li");
+    li.textContent = r;
+    ul.appendChild(li);
+  });
+
+  el.appendChild(badge);
+  el.appendChild(ul);
+  el.appendChild(hint);
+  el.style.display = "block";
+}
+
+
+
+function saveMetarStation() {
+  const station = getChosenStation();
+  if (!station) {
+    metarMsg("Digite ou selecione um aeroporto para salvar.", true);
+    return;
+  }
+
+  if (!metarStations.includes(station)) metarStations.push(station);
+
+  // se não existir padrão ainda, define automático
+  if (!defaultMetarStation) defaultMetarStation = station;
+
+  saveAll();
+  renderMetarControls();
+  metarMsg(`Salvo: ${station}`);
+}
+
+function deleteMetarStation() {
+  const sel = document.getElementById("metarSaved");
+  const station = normalizeStationCode(sel?.value) || getChosenStation();
+  if (!station) {
+    metarMsg("Selecione um aeroporto salvo para excluir.", true);
+    return;
+  }
+
+  if (!metarStations.includes(station)) {
+    metarMsg("Esse aeroporto não está na sua lista.", true);
+    return;
+  }
+
+  const ok = confirm(`Excluir "${station}" da lista de aeroportos salvos?`);
+  if (!ok) return;
+
+  metarStations = metarStations.filter(x => x !== station);
+
+  if (defaultMetarStation === station) {
+    defaultMetarStation = metarStations[0] || "";
+  }
+
+  saveAll();
+  renderMetarControls();
+
+  const resEl = document.getElementById("metarResult");
+  if (resEl && metarState.lastStation === station) {
+    resEl.style.display = "none";
+    metarState.lastStation = "";
+    metarState.lastText = "";
+    metarState.lastFetchedAt = 0;
+  }
+
+  metarMsg(`Excluído: ${station}`);
+}
+
+function setMetarAsDefault() {
+  const station = getChosenStation();
+  if (!station) {
+    metarMsg("Digite ou selecione um aeroporto para definir como padrão.", true);
+    return;
+  }
+
+  if (!metarStations.includes(station)) metarStations.push(station);
+  defaultMetarStation = station;
+
+  saveAll();
+  renderMetarControls();
+  metarMsg(`Padrão definido: ${station}`);
+}
+
+function autoFetchDefaultMetarOnce() {
+  if (metarState.didAutoFetch) return;
+  metarState.didAutoFetch = true;
+
+  if (defaultMetarStation) {
+    // puxa logo que abrir a aba
+    fetchMetar(false);
+  }
+}
+
 function onOpenWeatherTab() {
   // ao abrir, tenta atualizar uma vez
   refreshWeather(false);
+  renderMetarControls();
+  autoFetchDefaultMetarOnce();
 }
+
 
 /* ABAS */
 function showTab(tab) {
@@ -1587,6 +2298,8 @@ function fillSelect(el, list) {
 }
 
 function render() {
+  bindEditModalOnce();
+  bindEditModalOnce();
   migrateFlightIds();
 
   if (defaultDrone && !drones.includes(defaultDrone)) drones.push(defaultDrone);
@@ -1635,25 +2348,12 @@ migrateFlightIds();
 render();
 showTab("logbook");
 
-// Fecha modal clicando fora e com ESC
-(() => {
-  const overlay = document.getElementById("editModalOverlay");
-  if (overlay && !overlay.dataset._bound) {
-    overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) closeEditModal();
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeEditModal();
-    });
-    overlay.dataset._bound = "1";
-  }
-})();
 
-// PWA: registra Service Worker
+/* =======================
+   PWA: registra Service Worker
+======================= */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js").catch(() => {
-      // silencioso
-    });
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
   });
 }
