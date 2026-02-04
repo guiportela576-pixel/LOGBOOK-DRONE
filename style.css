@@ -582,3 +582,121 @@ button.primary{ background: linear-gradient(180deg, var(--blue2), #0a6fe0); }
 .pilot-box button:active{
   transform: translateY(1px);
 }
+
+
+/* =======================
+   TEMA COCKPIT (agressivo) - painéis/inputs/cards
+   (somente visual: sem alterar estrutura/funcionalidade)
+======================= */
+:root{
+  --bg: #05070c;
+  --card: rgba(10,14,22,0.92);
+  --text: rgba(230,245,255,0.95);
+  --muted: rgba(230,245,255,0.70);
+  --line: rgba(0,229,255,0.16);
+  --ghost: rgba(255,255,255,0.06);
+
+  /* acento avionics */
+  --av-cyan: #00e5ff;
+  --shadow: 0 10px 26px rgba(0,0,0,0.45);
+}
+
+html, body{
+  background: radial-gradient(1200px 600px at 50% -120px, rgba(0,229,255,0.10), transparent 55%),
+              linear-gradient(180deg, #070b12, #05070c 55%, #04060a);
+  color: var(--text);
+}
+
+.card{
+  background: linear-gradient(180deg, rgba(12,18,28,0.92), rgba(8,12,20,0.94));
+  border: 1px solid rgba(0,229,255,0.14);
+  box-shadow:
+    0 10px 26px rgba(0,0,0,0.45),
+    inset 0 0 0 1px rgba(255,255,255,0.03);
+}
+
+h2{ color: rgba(230,245,255,0.95); }
+h3{ color: rgba(230,245,255,0.72); }
+
+/* Inputs / selects / textarea = instrumento */
+input, select, textarea{
+  background: linear-gradient(180deg, rgba(6,10,16,0.95), rgba(3,6,10,0.96));
+  color: rgba(230,245,255,0.95);
+  border: 1px solid rgba(0,229,255,0.18);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.02),
+    inset 0 10px 18px rgba(0,0,0,0.35);
+}
+
+input::placeholder, textarea::placeholder{
+  color: rgba(230,245,255,0.55);
+}
+
+input:focus, select:focus, textarea:focus{
+  border-color: rgba(0,229,255,0.55);
+  box-shadow:
+    0 0 0 4px rgba(0,229,255,0.12),
+    0 0 18px rgba(0,229,255,0.12),
+    inset 0 0 0 1px rgba(255,255,255,0.03);
+}
+
+select{ accent-color: var(--av-cyan); }
+
+/* Botões (mantém tamanho/layout; só acabamento avionics agressivo) */
+button{
+  background: linear-gradient(180deg, rgba(0,229,255,0.22), rgba(0,229,255,0.10));
+  border: 1px solid rgba(0,229,255,0.25);
+  box-shadow:
+    0 0 0 1px rgba(0,229,255,0.12),
+    0 0 18px rgba(0,229,255,0.10);
+  color: rgba(230,245,255,0.95);
+}
+
+button.ghost, .small-btn{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(0,229,255,0.12);
+  color: rgba(230,245,255,0.90);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+
+button.primary{
+  background: linear-gradient(180deg, rgba(0,229,255,0.30), rgba(0,229,255,0.14));
+  border: 1px solid rgba(0,229,255,0.35);
+  color: var(--av-cyan);
+}
+
+.mini-btn{
+  background: rgba(255,255,255,0.06);
+  color: rgba(230,245,255,0.92);
+  border: 1px solid rgba(0,229,255,0.14);
+}
+
+.btn-green{
+  background: linear-gradient(180deg, rgba(34,197,94,0.28), rgba(34,197,94,0.12));
+  border: 1px solid rgba(34,197,94,0.28);
+  box-shadow: 0 0 18px rgba(34,197,94,0.10);
+}
+.btn-red{
+  background: linear-gradient(180deg, rgba(239,68,68,0.30), rgba(239,68,68,0.14));
+  border: 1px solid rgba(239,68,68,0.30);
+  box-shadow: 0 0 18px rgba(239,68,68,0.10);
+}
+
+/* Listas e separadores */
+.list li{
+  border-bottom: 1px solid rgba(0,229,255,0.10);
+}
+
+/* Boxes de mensagens e cronômetro */
+.op-timer, .op-msg, .metar-result, .weather-item, .metar-decoded .metar-item{
+  background: linear-gradient(180deg, rgba(6,10,16,0.92), rgba(3,6,10,0.94));
+  border: 1px solid rgba(0,229,255,0.14);
+  color: rgba(230,245,255,0.95);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+
+.weather-label, .dash-label, .metar-label{
+  color: rgba(230,245,255,0.70);
+}
+
+strong{ color: rgba(230,245,255,0.98); }
