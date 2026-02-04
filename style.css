@@ -957,3 +957,15 @@ button.ghost, .small-btn, .mini-btn{
 .list li{
   border-bottom: 1px solid rgba(0, 80, 120, 0.12);
 }
+
+
+/* =======================
+   FIX CONTRASTE DE TEXTO EM CAMPOS
+======================= */
+input, select, textarea{
+  color: #111827 !important;
+}
+
+input::placeholder, textarea::placeholder{
+  color: #4b5563 !important;
+}
