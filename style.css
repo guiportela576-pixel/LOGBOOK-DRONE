@@ -1062,3 +1062,89 @@ button.primary:active{
 #hoursByDrone{
   color:#1f2933;
 }
+
+
+/* =======================
+   POLISH PACK v1 (clean premium)
+   - somente visual (CSS)
+   - sem alterar estrutura/funcionalidade
+======================= */
+*{ -webkit-tap-highlight-color: transparent; }
+
+.card{
+  border-color: rgba(0, 80, 120, 0.16);
+  box-shadow:
+    0 8px 18px rgba(0,0,0,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.75);
+}
+
+input, select, textarea{
+  border-color: rgba(15, 23, 42, 0.20);
+  box-shadow:
+    inset 0 2px 3px rgba(0,0,0,0.08),
+    0 1px 1px rgba(255,255,255,0.7);
+}
+
+input:focus, select:focus, textarea:focus{
+  border-color: rgba(0,183,255,0.55);
+  box-shadow:
+    0 0 0 3px rgba(0,183,255,0.14),
+    inset 0 2px 3px rgba(0,0,0,0.08);
+}
+
+button{
+  transition: transform .06s ease, box-shadow .16s ease, filter .16s ease;
+}
+
+button:hover{
+  filter: brightness(1.02);
+  box-shadow:
+    0 10px 18px rgba(0,0,0,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.78);
+}
+
+button:active{
+  transform: translateY(1px);
+  box-shadow:
+    0 6px 12px rgba(0,0,0,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.72);
+}
+
+button.primary{
+  box-shadow:
+    0 10px 18px rgba(0,0,0,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.75);
+}
+button.primary:hover{ filter: saturate(1.05) brightness(1.02); }
+button.primary:active{ transform: translateY(1px); }
+
+button.ghost, .small-btn, .mini-btn{
+  box-shadow:
+    0 6px 12px rgba(0,0,0,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.75);
+}
+
+h1{ letter-spacing: 0.2px; }
+h2{ letter-spacing: 0.1px; }
+h3{ letter-spacing: 0.1px; }
+
+.tabs-footer{
+  border-top: 1px solid rgba(15, 23, 42, 0.10);
+  box-shadow: 0 -10px 20px rgba(0,0,0,0.10);
+}
+
+.tabs button{
+  transition: transform .06s ease, box-shadow .16s ease, filter .16s ease;
+}
+
+.tabs button .tab-ico{ vertical-align: -2px; }
+
+.tabs button:hover{ filter: brightness(1.02); }
+
+.tabs button:active{ transform: translateY(1px); }
+
+.tabs button.active{
+  box-shadow:
+    0 0 0 1px rgba(0,183,255,0.16),
+    0 8px 16px rgba(0,0,0,0.10);
+}
