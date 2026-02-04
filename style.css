@@ -1038,3 +1038,15 @@ button.primary:active{
 .tabs-footer{
   background: linear-gradient(180deg, #d0d8e2, #bfc9d6);
 }
+
+
+/* =======================
+   FIX HISTÓRICO DE VOOS (texto escuro)
+======================= */
+#flightList strong{
+  color:#0f172a !important;
+}
+
+#flightList{
+  color:#1f2933;
+}
