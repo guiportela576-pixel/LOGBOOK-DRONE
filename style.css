@@ -969,3 +969,16 @@ input, select, textarea{
 input::placeholder, textarea::placeholder{
   color: #4b5563 !important;
 }
+
+
+/* =======================
+   FIX CONTRASTE TÍTULOS DE SEÇÕES
+======================= */
+h2, h3{
+  color: #0f172a !important; /* cinza bem escuro */
+}
+
+.card h2,
+.card h3{
+  color: #0f172a !important;
+}
