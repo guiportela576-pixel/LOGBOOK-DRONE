@@ -1050,3 +1050,15 @@ button.primary:active{
 #flightList{
   color:#1f2933;
 }
+
+
+/* =======================
+   FIX HORAS POR DRONE (texto escuro)
+======================= */
+#hoursByDrone strong{
+  color:#0f172a !important;
+}
+
+#hoursByDrone{
+  color:#1f2933;
+}
