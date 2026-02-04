@@ -1301,3 +1301,85 @@ button.ghost{
 .list li{
   border-bottom:1px solid rgba(0,229,255,.25);
 }
+
+
+/* =======================
+   THEME: LIGHT MILITARY iOS MODERN
+======================= */
+
+:root{
+ --bg:#eef2f6;
+ --card:#ffffff;
+ --accent:#2563eb;
+ --accent2:#16a34a;
+ --text:#0f172a;
+ --muted:#475569;
+}
+
+/* Background */
+html,body{
+ background:linear-gradient(180deg,#f5f7fb,#e7ecf2);
+ color:var(--text);
+}
+
+/* Header & Footer */
+.app-header,
+.tabs-footer{
+ background:linear-gradient(180deg,#ffffff,#e9eef5);
+ box-shadow:0 4px 14px rgba(0,0,0,.15);
+}
+
+/* Cards */
+.card{
+ background:#ffffff;
+ border-radius:18px;
+ box-shadow:0 6px 18px rgba(0,0,0,.15);
+ border:none;
+}
+
+/* Titles */
+h2,h3{
+ color:#1e293b;
+ letter-spacing:.5px;
+}
+
+/* Inputs */
+input,select,textarea{
+ background:#f8fafc;
+ border:1px solid #cbd5e1;
+ color:#0f172a;
+}
+
+input:focus,select:focus,textarea:focus{
+ border-color:var(--accent);
+ box-shadow:0 0 0 3px rgba(37,99,235,.25);
+}
+
+/* Buttons */
+button{
+ background:linear-gradient(180deg,#3b82f6,#2563eb);
+ color:white;
+ border:none;
+ box-shadow:0 6px 14px rgba(0,0,0,.25);
+}
+
+button.primary{
+ background:linear-gradient(180deg,#22c55e,#16a34a);
+}
+
+button.ghost{
+ background:#f1f5f9;
+ color:#0f172a;
+}
+
+/* Tabs */
+.tabs button{
+ background:#f1f5f9;
+ color:#475569;
+}
+
+.tabs button.active{
+ background:linear-gradient(180deg,#3b82f6,#2563eb);
+ color:white;
+ box-shadow:0 0 0 2px rgba(37,99,235,.4);
+}
