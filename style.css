@@ -982,3 +982,59 @@ h2, h3{
 .card h3{
   color: #0f172a !important;
 }
+
+
+/* =======================
+   REFINO VISUAL (mais escuro + efeitos)
+======================= */
+
+/* Fundo geral um pouco mais escuro */
+html, body{
+  background:
+    linear-gradient(180deg, #d6dde6, #c7d0dc 45%, #b8c2cf);
+}
+
+/* Cards um pouco mais escuros */
+.card{
+  background: linear-gradient(180deg, rgba(235,238,244,0.95), rgba(215,222,231,0.95));
+}
+
+/* Inputs e selects com efeito de profundidade */
+input, select, textarea{
+  background: linear-gradient(180deg, #f8fafc, #e5ebf2);
+  border: 1px solid #7a8ca3;
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.10),
+    0 1px 2px rgba(255,255,255,0.8);
+}
+
+input:focus, select:focus, textarea:focus{
+  border-color: #00b7ff;
+  box-shadow:
+    0 0 0 3px rgba(0,183,255,0.25),
+    inset 0 2px 4px rgba(0,0,0,0.12);
+}
+
+/* Botões com estilo metálico */
+button{
+  background: linear-gradient(180deg, #f2f5f9, #d5dde7);
+  border: 1px solid #6b7f99;
+  box-shadow:
+    0 4px 8px rgba(0,0,0,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+}
+
+button.primary{
+  background: linear-gradient(180deg, #bfe9ff, #7fd0ff);
+  border: 1px solid #00b7ff;
+  color: #053a55;
+}
+
+button.primary:active{
+  transform: translateY(1px);
+}
+
+/* Rodapé um pouco mais escuro */
+.tabs-footer{
+  background: linear-gradient(180deg, #d0d8e2, #bfc9d6);
+}
