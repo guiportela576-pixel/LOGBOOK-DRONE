@@ -1,4 +1,4 @@
-const CACHE_NAME = "drone-logbook-v20";
+const CACHE_NAME = "drone-logbook-v30";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
