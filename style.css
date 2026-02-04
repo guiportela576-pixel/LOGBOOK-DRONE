@@ -821,3 +821,139 @@ button.ghost, .small-btn, .mini-btn{
   background: linear-gradient(180deg, rgba(34,40,48,0.92), rgba(22,26,32,0.94));
   border: 1px solid rgba(0,229,255,0.14);
 }
+
+
+/* =======================
+   TEMA COCKPIT (metal mais claro) + ícones coloridos no rodapé
+   (somente visual)
+======================= */
+:root{
+  --bg: #2a2f36;
+  --card: rgba(245, 248, 252, 0.10); /* fallback */
+  --text: rgba(18, 22, 28, 0.95);
+  --muted: rgba(18, 22, 28, 0.70);
+
+  --line: rgba(0, 80, 120, 0.22);
+  --ghost: rgba(255,255,255,0.30);
+
+  --av-cyan: #00b7ff;
+  --shadow: 0 10px 22px rgba(0,0,0,0.18);
+}
+
+/* Fundo metal claro */
+html, body{
+  background:
+    radial-gradient(1000px 600px at 50% -160px, rgba(0,183,255,0.12), transparent 55%),
+    radial-gradient(900px 520px at 0% 20%, rgba(255,255,255,0.24), transparent 60%),
+    linear-gradient(180deg, #eef2f6, #dfe5ec 45%, #cfd7e1);
+  color: rgba(18,22,28,0.95);
+}
+
+/* Header/Rodapé metal claro */
+.app-header,
+.tabs-footer{
+  background: linear-gradient(180deg, #f1f4f8, #dfe5ec 65%, #cfd7e1);
+  border-color: rgba(0, 80, 120, 0.22);
+  color: rgba(18,22,28,0.95);
+}
+
+/* Textos do header */
+.app-header, .app-header *{
+  color: rgba(18,22,28,0.95);
+}
+
+/* Cards: painel metal claro */
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(241,245,250,0.80));
+  border: 1px solid rgba(0, 80, 120, 0.18);
+  box-shadow:
+    0 10px 22px rgba(0,0,0,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.70);
+}
+
+.dash-card{
+  background: rgba(255,255,255,0.60);
+  border: 1px solid rgba(0, 80, 120, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.70);
+}
+.dash-label{ color: rgba(18,22,28,0.72); }
+.dash-value, .dash-subvalue{ color: rgba(18,22,28,0.95); }
+
+/* Campos tipo instrumento (claros) */
+input, select, textarea{
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(241,245,250,0.90));
+  border: 1px solid rgba(0, 80, 120, 0.20);
+  color: rgba(18,22,28,0.95);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.75),
+    inset 0 10px 18px rgba(0,0,0,0.06);
+}
+input::placeholder, textarea::placeholder{
+  color: rgba(18,22,28,0.50);
+}
+
+input:focus, select:focus, textarea:focus{
+  border-color: rgba(0,183,255,0.55);
+  box-shadow:
+    0 0 0 4px rgba(0,183,255,0.16),
+    0 0 18px rgba(0,183,255,0.10);
+}
+
+/* Botões metal claro */
+button{
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(241,245,250,0.88));
+  border: 1px solid rgba(0, 80, 120, 0.18);
+  color: rgba(18,22,28,0.95);
+  box-shadow:
+    0 6px 14px rgba(0,0,0,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.70);
+}
+
+button.primary{
+  background: linear-gradient(180deg, rgba(0,183,255,0.22), rgba(0,183,255,0.10));
+  border: 1px solid rgba(0,183,255,0.35);
+  color: rgba(0,80,120,0.95);
+}
+
+button.ghost, .small-btn, .mini-btn{
+  background: rgba(255,255,255,0.70);
+  border: 1px solid rgba(0, 80, 120, 0.16);
+  color: rgba(18,22,28,0.92);
+}
+
+/* Rodapé: mantém layout; ícones coloridos */
+.tabs button{
+  background: rgba(255,255,255,0.55);
+  border: 1px solid rgba(0, 80, 120, 0.16);
+  color: rgba(18,22,28,0.85);
+}
+
+/* Ícone por aba (cor fixa, estilo app) */
+#tab-logbook .tab-ico{ color: #0a66c2; }      /* azul */
+#tab-reports .tab-ico{ color: #7c3aed; }      /* roxo */
+#tab-settings .tab-ico{ color: #111827; }     /* grafite */
+#tab-weather .tab-ico{ color: #0ea5e9; }      /* ciano */
+#tab-operation .tab-ico{ color: #16a34a; }    /* verde */
+
+/* Quando ativo: realce sem apagar a cor do ícone */
+.tabs button.active{
+  background: rgba(0,183,255,0.14);
+  border-color: rgba(0,183,255,0.40);
+  color: rgba(18,22,28,0.95);
+  box-shadow:
+    0 0 0 1px rgba(0,183,255,0.18),
+    0 0 18px rgba(0,183,255,0.12);
+}
+.tabs button.active .tab-ico{
+  filter: drop-shadow(0 0 6px rgba(0,183,255,0.28));
+}
+
+/* Caixas especiais */
+.op-timer, .op-msg, .metar-result, .weather-item, .metar-decoded .metar-item{
+  background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(241,245,250,0.84));
+  border: 1px solid rgba(0, 80, 120, 0.16);
+  color: rgba(18,22,28,0.95);
+}
+.list li{
+  border-bottom: 1px solid rgba(0, 80, 120, 0.12);
+}
