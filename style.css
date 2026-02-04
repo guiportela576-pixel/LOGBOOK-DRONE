@@ -700,3 +700,124 @@ button.primary{
 }
 
 strong{ color: rgba(230,245,255,0.98); }
+
+
+/* =======================
+   TEMA COCKPIT (metal cinza) - ajuste visual (menos escuro)
+   (sobrescreve o tema agressivo; sem alterar estrutura/funcionalidade)
+======================= */
+:root{
+  --bg: #101317;
+  --card: rgba(28,33,40,0.92);
+  --text: rgba(245,248,252,0.95);
+  --muted: rgba(245,248,252,0.72);
+  --line: rgba(0,229,255,0.14);
+  --ghost: rgba(255,255,255,0.07);
+
+  --av-cyan: #00e5ff;
+  --shadow: 0 10px 26px rgba(0,0,0,0.35);
+}
+
+/* Fundo com “metal” (cinza) */
+html, body{
+  background:
+    radial-gradient(900px 520px at 50% -140px, rgba(0,229,255,0.10), transparent 55%),
+    radial-gradient(900px 520px at 0% 20%, rgba(255,255,255,0.06), transparent 60%),
+    linear-gradient(180deg, #171b21, #101317 55%, #0c0f13);
+  color: var(--text);
+}
+
+/* Header e rodapé também “metal” */
+.app-header,
+.tabs-footer{
+  background: linear-gradient(180deg, #1b2027, #12161c 65%, #0e1116);
+  border-color: rgba(0,229,255,0.16);
+}
+
+/* Cards com acabamento metal */
+.card{
+  background:
+    linear-gradient(180deg, rgba(40,46,56,0.90), rgba(26,31,38,0.92));
+  border: 1px solid rgba(0,229,255,0.14);
+  box-shadow:
+    0 10px 26px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+
+/* Dashboard cards */
+.dash-card{
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(0,229,255,0.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.dash-value, .dash-subvalue{ color: rgba(245,248,252,0.96); }
+.dash-label{ color: rgba(245,248,252,0.78); }
+
+/* Campos tipo instrumento (metal mais claro) */
+input, select, textarea{
+  background: linear-gradient(180deg, rgba(34,40,48,0.95), rgba(22,26,32,0.96));
+  border: 1px solid rgba(0,229,255,0.16);
+  color: rgba(245,248,252,0.95);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    inset 0 10px 18px rgba(0,0,0,0.22);
+}
+
+input::placeholder, textarea::placeholder{
+  color: rgba(245,248,252,0.60);
+}
+
+input:focus, select:focus, textarea:focus{
+  border-color: rgba(0,229,255,0.48);
+  box-shadow:
+    0 0 0 4px rgba(0,229,255,0.10),
+    0 0 18px rgba(0,229,255,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+/* Botões (metal + avionics) */
+button{
+  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.05));
+  border: 1px solid rgba(0,229,255,0.16);
+  color: rgba(245,248,252,0.95);
+  box-shadow:
+    0 0 0 1px rgba(0,229,255,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+button.primary{
+  background: linear-gradient(180deg, rgba(0,229,255,0.22), rgba(0,229,255,0.10));
+  border: 1px solid rgba(0,229,255,0.30);
+  color: var(--av-cyan);
+  box-shadow:
+    0 0 0 1px rgba(0,229,255,0.12),
+    0 0 16px rgba(0,229,255,0.10);
+}
+
+button.ghost, .small-btn, .mini-btn{
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(0,229,255,0.12);
+  color: rgba(245,248,252,0.92);
+}
+
+/* Tabs do rodapé (mantém layout; só metal) */
+.tabs button{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(0,229,255,0.12);
+  color: rgba(245,248,252,0.88);
+}
+.tabs button.active{
+  background: rgba(0,229,255,0.12);
+  border-color: rgba(0,229,255,0.38);
+  color: var(--av-cyan);
+  box-shadow:
+    0 0 0 1px rgba(0,229,255,0.18),
+    0 0 18px rgba(0,229,255,0.14);
+}
+
+/* Boxes especiais */
+.op-timer, .op-msg, .metar-result, .weather-item, .metar-decoded .metar-item{
+  background: linear-gradient(180deg, rgba(34,40,48,0.92), rgba(22,26,32,0.94));
+  border: 1px solid rgba(0,229,255,0.14);
+}
