@@ -1,14 +1,21 @@
-const CACHE_NAME = "drone-logbook-v21";
+const CACHE_NAME = "drone-logbook-v22";
+
+self.addEventListener("message", (event) => {
+  if (event?.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
 
 self.addEventListener("install", (event) => {
-  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
       cache.addAll([
         "./",
         "./index.html",
         "./style.css",
+        "./style.css?v=15",
         "./app.js",
+        "./app.js?v=15",
         "./manifest.json",
         "./icon.png"
       ])

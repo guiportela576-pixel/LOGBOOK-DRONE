@@ -2349,11 +2349,100 @@ render();
 showTab("logbook");
 
 
+
 /* =======================
-   PWA: registra Service Worker
+   APP: Versão + histórico
 ======================= */
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+const APP_VERSION = "v22";
+const APP_RELEASE_DATE = "2026-02-11";
+const APP_CHANGELOG = [
+  "✅ Aviso de atualização disponível com botão “Atualizar agora”.",
+  "✅ Tela de versão do app + histórico (Cadastros)."
+];
+
+function renderAppVersionInfo() {
+  const metaEl = document.getElementById("appVersionText");
+  const listEl = document.getElementById("appChangelog");
+
+  if (metaEl) {
+    metaEl.textContent = `Versão: ${APP_VERSION} • Data: ${APP_RELEASE_DATE}`;
+  }
+
+  if (listEl) {
+    listEl.innerHTML = "";
+    (Array.isArray(APP_CHANGELOG) ? APP_CHANGELOG : []).forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = String(item || "").trim();
+      listEl.appendChild(li);
+    });
+  }
+}
+
+/* =======================
+   PWA: registra Service Worker + aviso de update
+======================= */
+let __swReg = null;
+let __refreshing = false;
+
+function showUpdateBanner(reg) {
+  const banner = document.getElementById("updateBanner");
+  const btn = document.getElementById("updateNowBtn");
+  if (!banner || !btn) return;
+
+  banner.style.display = "block";
+
+  if (!btn.dataset._bound) {
+    btn.addEventListener("click", () => {
+      try {
+        // manda o SW novo assumir
+        if (reg?.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      } catch {}
+    });
+    btn.dataset._bound = "1";
+  }
+}
+
+function setupSWUpdateFlow(reg) {
+  if (!reg) return;
+
+  // Se já existe um SW esperando (ex: voltou pro app depois de um tempo)
+  if (reg.waiting && navigator.serviceWorker.controller) {
+    showUpdateBanner(reg);
+  }
+
+  // Quando baixar um novo SW, ele muda de estado
+  reg.addEventListener("updatefound", () => {
+    const newWorker = reg.installing;
+    if (!newWorker) return;
+
+    newWorker.addEventListener("statechange", () => {
+      // installed = pronto (mas aguardando)
+      if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+        showUpdateBanner(reg);
+      }
+    });
+  });
+
+  // Quando o SW novo assumir, recarrega uma vez
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (__refreshing) return;
+    __refreshing = true;
+    window.location.reload();
   });
 }
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("./service-worker.js")
+      .then((reg) => {
+        __swReg = reg;
+        setupSWUpdateFlow(reg);
+      })
+      .catch(() => {});
+  });
+}
+
+// Render extra (versão do app)
+try { renderAppVersionInfo(); } catch {}
+
